@@ -73,7 +73,7 @@
 <script setup lang="ts">
 import RegisterLayout from '~/layouts/register.vue';
 
-const supabase = useSupabaseAuthClient();
+const supabase = useSupabaseClient();
 
 
   type AccountState = {

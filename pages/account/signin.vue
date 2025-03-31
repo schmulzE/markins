@@ -29,7 +29,6 @@
             required
             >
           </div>
-          <NuxtLink id="forgotPasswordLink" to="/account/recoverpassword" class="text-right block text-sm">Forgot your password?</NuxtLink>
           <button 
           :disabled="state.loading || state.password == ''" 
           type="submit"
