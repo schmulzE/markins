@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+@plugin '@egoist/tailwindcss-icons';
+
+/* pass options to the plugin */
+@plugin '@egoist/tailwindcss-icons' {
+  scale: 1;
+}
+
+body, html {
+  overflow-x: hidden;
+  font-family: Rubik, sans-serif;
+}
