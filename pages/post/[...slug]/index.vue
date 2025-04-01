@@ -57,7 +57,7 @@ const image_url = ref('');
 const loading  = ref(false);
 const store = useModalStore();
 const user = useSupabaseUser();
-const commentLoading = ref(false)
+const commentLoading = ref(false);
 const postId = route.params.slug[0];
 const comments = ref<Comments[]>([]);
 const totalPostVotes = ref<number>(0);
@@ -95,7 +95,7 @@ const createComment = async(payload: string) => {
   try {
     loading.value = true;
     
-    const {data}  = await $fetch(`/api/comments/${postId}`, {
+    const response = await $fetch(`/api/comments/${postId}`, {
       method: 'POST',
       body: {
         message: payload,
@@ -103,6 +103,7 @@ const createComment = async(payload: string) => {
         post_id: postId
       },
     })
+    const data = response?.data;
     comments.value.unshift(data as Comments)
     
   } catch (error) {

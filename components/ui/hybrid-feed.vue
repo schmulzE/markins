@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs';
 import DOMPurify from 'dompurify';
-import useModalStore from '~/stores/useModalStore';
 import Tag from '~/components/forum/tag/taglink.vue';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import type { Tables } from '~/types/database.types';
@@ -52,7 +51,6 @@ const sanitizeHtml = (html: string) => {
 
 const { downloadImage } = useStorage();
 
-const store = useModalStore();
 const user = useSupabaseUser();
 
 const props = withDefaults(defineProps<Props>(), {
@@ -157,22 +155,6 @@ onBeforeUnmount(() => {
   Object.values(commentAvatarUrls.value).forEach(URL.revokeObjectURL)
 })
 
-function openWarningModal(commentId: string) {
-  store.openModal({ 
-    component: markRaw(defineAsyncComponent(() => import('~/components/forum/comment/delete-confirmation-modal.vue'))), 
-    props: {
-      classes: "fixed w-1/2 top-[50%] left-[50%] p-6 h-auto transform translate-x-[-50%] translate-y-[-50%]", 
-      overlayClass: 'bg-black bg-opacity-70', 
-    },
-    events: {
-      deleteComment: async() => {
-        await $fetch(`api/user/${commentId}`, {
-          method: "DELETE",
-        })
-      },
-    }
-  });
-}
 </script>
 
 <template>
@@ -271,13 +253,6 @@ function openWarningModal(commentId: string) {
                 <p class="mt-1 text-xs font-semibold ml-1 text-gray-500">
                   added a comment <time>{{ dateTime((item.content as Comments).created_at!) }}</time>
                 </p>
-                <a 
-                  v-if="user && user?.id === (item.content as Comments).profile_id" 
-                  class="text-[red] cursor-pointer italic text-xs mt-1 ml-2 hidden group-hover:block"
-                  @click="openWarningModal(item.id)" 
-                >
-                  Delete
-                </a>
               </div>
               <!-- eslint-disable-next-line vue/no-v-html -->
               <div v-html="sanitizeHtml((item.content as Comments).content!)"/>
