@@ -17,49 +17,12 @@
             placeholder="Search" 
             >
           </label>
-          <Tabs 
-          class="border rounded-md"
-          :initial-active="initialActive" 
-          :tabs="tabs" 
+
+          <DynamicTab 
+          :tabs="tabs"  
+          tab-class="border rounded-md w-fit justify-self-end"
           @tab-changed="onTabChange" 
-          >
-          <template #tab1>
-            <div class="absolute left-0 mt-4 mb-8">
-                popular tags
-                <div class="flex flex-col md:flex-row gap-4 mt-8">
-                  <div v-for="tag in paginatedTags" :key="tag.id" class="border p-2 space-y-2">
-                    <NuxtLink :to='`/posts/tagged/${tag.title}`' class="text-xs bg-base-200 p-1 rounded-sm">{{ tag.title }}</NuxtLink>
-                    <p class="text-sm">{{ tag.description }}</p>
-                    <p class="text-xs">{{ tag.posts.length }} questions</p>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template #tab2>
-              <div class="absolute left-0 mt-4">
-                tags by name
-                <div class="flex flex-col md:flex-row gap-4 mt-8">
-                  <div v-for="tag in paginatedTags" :key="tag.id" class="border p-2 space-y-2">
-                    <NuxtLink :to='`/posts/tagged/${tag.title}`' class="text-xs bg-base-200 ">{{ tag.title }}</NuxtLink>
-                    <p class="text-sm">{{ tag.description }}</p>
-                    <p class="text-xs">{{ tag.posts.length }} questions</p>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template #tab3>
-              <div class="absolute left-0 mt-4">
-                tags by date
-                <div class="flex flex-col md:flex-row gap-4 mt-8">
-                  <div v-for="tag in paginatedTags" :key="tag.id" class="border p-2 space-y-2">
-                    <NuxtLink :to='`/posts/tagged/${tag.title}`' class="text-xs bg-base-200">{{ tag.title }}</NuxtLink>
-                    <p class="text-sm">{{ tag.description }}</p>
-                    <p class="text-xs">{{ tag.posts.length }} questions</p>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </Tabs>
+          />
         </div>
         
         <Pagination
@@ -74,15 +37,16 @@
 </template>
 
 <script setup lang="ts">
-import Tabs from '~/components/ui/tabs.vue';
 import ForumLayout from '~/layouts/forum.vue';
 import { useToast } from 'vue-toastification';
 import type { Tables } from '~/types/database.types';
 import Pagination from '~/components/ui/pagination.vue';
+import DynamicTab from '~/components/ui/dynamic-tab.vue';
+import ExploreTag from '~/components/forum/tag/explore-tag.vue';
 
 const route =  useRoute();
 
-interface Tag {
+export interface Tag {
   id: number;
   title: string;
   description: string;
@@ -105,12 +69,35 @@ const currentPage = ref(Number(route.query.page) || 1);
 const currentTab = ref(route.query.sortBy?.toString() || 'popular');
 
 const tabs = ref([
-  { name: 'popular', slot: 'tab1' },
-  { name: 'name', slot: 'tab2' },
-  { name: 'new', slot: 'tab3' },
-]);
+  {
+    id: 'popular',
+    title: 'popular',
+    content: shallowRef(ExploreTag),
+    componentProps: {
+      paginatedTags,
+      title: 'popular tags',
+    }
+  },
+  {
+    id: 'name',
+    title: 'name',
+    content: shallowRef(ExploreTag),
+    componentProps: {
+      title: 'tags by name',
+      paginatedTags,
+    }
+  },
+  {
+    id: 'new',
+    title: 'new',
+    content: shallowRef(ExploreTag),
+    componentProps: {
+      title: 'tags by date',
+      paginatedTags,
+    }
+  },
+])
 
-const initialActive = tabs.value.findIndex((tab) => tab.name === currentTab.value);
 
 const fetchTags = async (page: number, tab: string) => {
   const from = (page - 1) * perPage.value;
