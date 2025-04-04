@@ -9,11 +9,16 @@ interface Tab {
   // For dynamic component props
   componentProps?: Record<string, unknown>
   disabled?: boolean
-}
+} 
+
+const emit = defineEmits<{
+  (e: 'tab-changed', title: string): void
+}>();
 
 const props = defineProps<{
   tabs: Tab[]
   initialTab?: string | number
+  tabClass?: string
 }>()
 
 const activeTab = ref<string | number>(props.initialTab || props.tabs[0]?.id)
@@ -22,6 +27,7 @@ const setActiveTab = (tabId: string | number) => {
   const tab = props.tabs.find(t => t.id === tabId)
   if (tab && !tab.disabled) {
     activeTab.value = tabId
+    emit('tab-changed', tab.title);
   }
 }
 </script>
@@ -29,7 +35,10 @@ const setActiveTab = (tabId: string | number) => {
 <template>
   <div class="bg-base-100 my-4 w-full">
     <div class="overflow-x-auto md:overflow-x-hidden hide-scrollbar">
-      <div class="tabs w-full tabs-bordered mx-2 py-1 flex whitespace-nowrap">
+      <div 
+      class="tabs tabs-bordered mx-2 py-1 flex whitespace-nowrap"
+      :class="`${tabClass}`"
+      >
         <a
         v-for="tab in tabs"
         :key="tab.id"
