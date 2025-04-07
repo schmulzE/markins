@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
   <div class="navbar-end">
     <div v-if="user" class="flex items-center content-center justify-between gap-x-1">
     <div className="tooltip tooltip-bottom hidden md:block" data-tip="notification">
-      <button class="avatar placeholder relative hidden md:block" @click="openNotificationModal" >
+      <button class="avatar placeholder relative cursor-pointer hidden md:block" @click="openNotificationModal" >
         <span v-show="hasNotification" class="w-2 h-2 bg-red-600 absolute top-1 right-1 z-50 rounded-full" />
         <div class="rounded-full w-8">
           <span class="text-2xl i-ph-bell" />
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
     <div className="tooltip tooltip-bottom hidden md:block" data-tip="chat">
-      <button class="avatar placeholder hidden md:block" @click="openChatModal" >
+      <button class="avatar placeholder cursor-pointer hidden md:block" @click="openChatModal" >
         <div class="rounded-full w-8">
           <span class="text-2xl i-ph-chat-circle-dots" />
         </div>

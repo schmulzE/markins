@@ -1,33 +1,7 @@
 <script lang="ts" setup>
 import { useToast } from 'vue-toastification';
-import type { NestedResponse } from '~/types/utility';
 import useModalStore from '../../stores/useModalStore';
 import type { Database, Tables } from '~/types/database.types';
-
-type Message = {
-  content: string;
-  created_at: string; // or Date if you prefer
-};
-
-type Chat = {
-  id: string; // or number, depending on your data
-  messages: Message[];
-};
-
-type Profile = {
-  id: string; // or number, depending on your data
-  username: string;
-  avatar_url: string;
-};
-
-type SelectedTable = {
-  chat_id: string; // or number, depending on your data
-  chats: Chat;
-  profiles: Profile;
-};
-
-// Define the nested response type for the selected table
-type NestedSelectedTable = NestedResponse<SelectedTable, keyof SelectedTable>;
 
 interface Chats {
   id: string;
@@ -81,10 +55,12 @@ async function loadChats() {
     throw new Error('No chats found for the current user.')
   }
 
-  const participantsData  = await $fetch<NestedSelectedTable[]>('/api/chats_participants', {
+  const responseParticipants  = await $fetch('/api/chat_participants', {
     method: 'POST',
     body: { chatIds, userId: user.value?.id }
   });
+
+  const participantsData = responseParticipants?.data;
 
   if (!participantsData) {
    throw new Error('Error loading chat participants')
