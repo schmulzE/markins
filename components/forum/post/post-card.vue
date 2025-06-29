@@ -166,7 +166,7 @@
                       </a>
                     </li>
                     <li>
-                      <a class="flex items-center w-full" @click="$emit('award-click', post.id)">
+                      <a class="flex items-center w-full" @click="$emit('post-action', post.id)">
                         <i class="i-lucide-lock h-4 w-4 mr-2" />
                         {{ post.is_locked ? 'Unlock' : 'Lock' }} Post
                       </a>
@@ -220,9 +220,7 @@ const props = defineProps<{
 const emit = defineEmits([
   'vote',
   'share-click',
-  'bookmark-click',
   'hide-click',
-  'award-click',
   'post-action',
   'select-post'
 ]);
@@ -264,28 +262,4 @@ const handlePostAction = (postId: string, status:  'approve' | 'remove') => {
 const handleSelectPost = (postId: string) => {
  emit('select-post', postId)
 };
-
-// const downloadImages = async () => {
-//   try {
-//     if (props.posts) {
-//       for (const post of props.posts) {
-//         if (post.profiles?.avatar_url) {
-//           const { data, error } = await client.storage.from('avatars').download(post.profiles.avatar_url);
-//           if (error) throw error;
-//           avatarUrls.value[post.id] = URL.createObjectURL(data);
-//         }
-
-//         if (post.image_url) {
-//           const { data, error } = await client.storage.from('images').download(post.image_url);
-//           if (error) throw error;
-//           postImages.value[post.id] = URL.createObjectURL(data);
-//         }
-//       }
-//     }
-//   } catch (error) {
-//     if (error instanceof Error) {
-//       toast.error('Failed to download images');
-//     }
-//   }
-// };
 </script>

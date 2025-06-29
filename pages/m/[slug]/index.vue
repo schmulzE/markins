@@ -188,7 +188,6 @@
           :is-select-mode="isSelectMode"
           @vote="handleVote"
           @select-post="handleSelectPost"
-          @bookmark-click="handleBookmark"
           @post-action="handlePostAction"
         />
       </div>
@@ -322,7 +321,9 @@
 
 <script setup lang="ts">
 import { useToast } from 'vue-toastification';
-import type { Post, Community } from '~/types/utility'
+import { useVote } from '~/composables/useVotes';
+import type { Post, Community } from '~/types/utility';
+import { useCommunity } from '~/composables/useCommunity';
 import PostCard from '~/components/forum/post/post-card.vue';
 
 // Define props
@@ -331,11 +332,13 @@ const route = useRoute();
 const user = useSupabaseUser();
 
 const posts = ref<Post[]>([]);
-// const isModerator = ref(false);
 const isSelectMode = ref(false);
 const selectedPosts = ref<string[]>([]);
 const community = ref<Community | null>(null);
 const sortBy = ref<'hot' | 'new' | 'top'>('hot');
+const communityComposable = ref<ReturnType<typeof useCommunity> | null>(null);
+
+const { votePost } = useVote();
 
 const { data: communityData, error: communityError } = await useAsyncData(
   'community', 
@@ -354,19 +357,6 @@ if (communityError.value) {
 
 const isModerator = computed(() => community.value!.community_members?.some(member =>  member.user_id === user.value?.id))
 
-// Show online count
-const onlineCount = ref(0);
-
-// Track current user's presence
-watchEffect(() => {
-  if (community.value && community.value.id) {
-    useCommunityPresence(community.value.id);
-
-    const { onlineCount: count } = useCommunityOnlineCount(community.value.id);
-    onlineCount.value = count.value;
-  }
-});
-
 const { data: postsData, refresh: refreshPosts, error: postsError } = await useAsyncData(
   'posts', 
   async () => {
@@ -382,11 +372,6 @@ if (postsError.value) {
   console.log('error:', postsError.value)
   toast.error('An error occurred while trying to fetch posts');
 }
-
-watch(sortBy,  () => {
-  refreshPosts();
-}, {immediate: true})
-
 
 const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -406,7 +391,7 @@ const communityRules = computed<string[]>(() => {
   const rules = community.value?.rules as string[];
   
   if (Array.isArray(rules)) {
-    return rules; // TypeScript knows this is string[] from the generic
+    return rules;
   }
 
   if (typeof rules === 'string') {
@@ -421,99 +406,36 @@ const communityRules = computed<string[]>(() => {
   return [];
 });
 
-const isJoined = ref(false);
 
 watchEffect(() => {
-  isJoined.value = !!community.value?.community_members?.some((member) => member.user_id === user.value?.id);
-});
-
-const handleJoin = () => {
-  if (community.value) {
-    isJoined.value = !isJoined.value;
-    // Here you should also update the backend or community.value.community_members accordingly
+  if (community.value?.id && !communityComposable.value) {
+    communityComposable.value = useCommunity(community.value.id)
   }
-}
+})
 
+const onlineCount = computed(() => communityComposable.value?.onlineCount ?? 0)
+const isJoined = computed(() => communityComposable.value?.isJoined ?? false)
 
-const handleVote = async (postId: string, voteType: 'up' | 'down' | null) => {
-  const postIndex = posts.value.findIndex(p => p.id === postId);
-  if (postIndex === -1) return;
-
-  const post = posts.value[postIndex];
-  
-  // Calculate new votes
-  let newUpvotes = post.upvotes ?? 0;
-  let newDownvotes = post.downvotes ?? 0;
-  let newUserVote = voteType;
-  let karmaChange = 0; // Track karma difference
-
-  // Remove previous vote if exists
-  if (post.user_vote === 'up') {
-    newUpvotes -= 1;
-    karmaChange -= 1; // Remove previous upvote karma
-  } else if (post.user_vote === 'down') {
-    newDownvotes -= 1;
-    karmaChange += 1; // Remove previous downvote karma
+const handleJoin = async () => {
+  if (!user.value) {
+    toast.error('You must be signed in to join this community.')
+    return
   }
 
-  // Toggle vote if clicking same vote again
-  if (post.user_vote === voteType) {
-    newUserVote = null;
+  if (!communityComposable.value) return
+  if (isJoined.value) {
+    await communityComposable.value.leaveCommunity()
+    toast.success('You left the community.')
   } else {
-    // Apply new vote
-    if (post.user_vote !== voteType) {
-      if (voteType === 'up') {
-        newUpvotes += 1;
-        karmaChange += 1; // Add new upvote karma
-      } else if (voteType === 'down') {
-        newDownvotes += 1;
-        karmaChange -= 1; // Add new downvote karma
-      }
-    }
+    await communityComposable.value.joinCommunity()
+    toast.success('You joined the community.')
   }
-  const updatedPost = {
-    ...post,
-    upvotes: newUpvotes,
-    downvotes: newDownvotes,
-    user_vote: newUserVote,
-  };
-
-  try {
-    // Update post hot score
-    await $fetch('/api/posts/update-hotscore', {
-      method: 'POST',
-      body: { post: updatedPost }
-    });
-
-    // Update author's karma if vote actually changed
-    if (karmaChange !== 0 && post.author_id) {
-      await $fetch('/api/users/update-karma', {
-        method: 'POST',
-        body: { post_karma: karmaChange, karma: karmaChange }
-      });
-    }
-    
-    // Update local state
-    posts.value = [
-      ...posts.value.slice(0, postIndex),
-      updatedPost,
-      ...posts.value.slice(postIndex + 1)
-    ];
-  } catch (error) {
-    console.error('Failed to update vote:', error);
-    // Consider reverting UI state if the API call fails
-    // For example, you could re-fetch posts to restore correct state:
-    await refreshPosts();
-    // Or, if you want to optimistically revert just the affected post:
-    posts.value[postIndex] = post; // revert to original post object
-    // Optionally, show a toast to inform the user
-    toast.error('Failed to update vote. Please try again.');
-  }
-};
-
-const handleBookmark = () => {
-  console.log('bookmarked!...');
 }
+
+const handleVote = (postId: string, voteType: 'up' | 'down') => {
+  if(!posts.value) return;
+  votePost(posts.value as Post[], postId, voteType);
+};
 
 const handlePostAction = (postId: string, action: string) => {
   posts.value = posts.value.map((post) => {
@@ -572,4 +494,8 @@ const toggleSelectMode = () => {
 const setSortBy = (sort: 'hot' | 'new' | 'top') => {
   sortBy.value = sort
 }
+
+watch(sortBy,  () => {
+  refreshPosts();
+}, {immediate: true})
 </script>

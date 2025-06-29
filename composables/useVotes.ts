@@ -9,7 +9,7 @@ export const useVote = () => {
    // Handle post voting with optimistic updates
   const votePost = async (post: Ref<Post> | Post[], postId: string, voteType: 'up' | 'down') => {
     if (!user.value) {
-      toast({ title: 'Please login to vote', color: 'red' });
+      toast.error('Please login to vote');
       return;
     }
 
@@ -24,17 +24,22 @@ export const useVote = () => {
       downvotes: 0
     };
 
+    let postAuthorId: string | undefined;
+    let updatedPost: Post | undefined;
+
     // Optimistically update the UI
     if (Array.isArray(post)) {
       const index = post.findIndex(p => p.id === postId);
       if (index !== -1) {
+        const targetPost = post[index];
         previousState = {
-          user_vote: post[index].user_vote ?? null,
-          upvotes: post[index].upvotes ?? 0,
-          downvotes: post[index].downvotes ?? 0
+          user_vote: targetPost.user_vote ?? null,
+          upvotes: targetPost.upvotes ?? 0,
+          downvotes: targetPost.downvotes ?? 0
         };
         
-        const updatedPost = calculateNewVoteState(post[index], voteType);
+        updatedPost = calculateNewVoteState(post[index], voteType);
+        postAuthorId = targetPost.author_id ?? '';
         post[index] = updatedPost;
       }
     } else {
@@ -44,7 +49,20 @@ export const useVote = () => {
         downvotes: post.value.downvotes ?? 0
       };
       
-      post.value = calculateNewVoteState(post.value, voteType);
+      updatedPost = calculateNewVoteState(post.value, voteType);
+      postAuthorId = post.value.author_id ?? '';
+      post.value = updatedPost;
+
+    }
+
+    // Calculate karmaChange
+    let karmaChange = 0;
+    if (previousState.user_vote === 'up') karmaChange -= 1;
+    else if (previousState.user_vote === 'down') karmaChange += 1;
+
+    if (previousState.user_vote !== voteType) {
+      if (voteType === 'up') karmaChange += 1;
+      else if (voteType === 'down') karmaChange -= 1;
     }
 
     try {
@@ -92,6 +110,14 @@ export const useVote = () => {
         body: { post: Array.isArray(post) ? post.find(p => p.id === postId) : post.value }
       });
 
+      // Update author's karma if vote actually changed
+      if (karmaChange !== 0 && postAuthorId) {
+        await $fetch('/api/users/update-karma', {
+          method: 'POST',
+          body: { post_karma: karmaChange, karma: karmaChange }
+        });
+      }
+
     } catch (error) {
       // Revert to previous state on error
       if (Array.isArray(post)) {
@@ -109,10 +135,9 @@ export const useVote = () => {
         };
       }
 
-      toast({ 
+      toast.error({ 
         title: 'Failed to vote', 
-        description: 'Your vote could not be processed', 
-        color: 'red' 
+        description: 'Your vote could not be processed',  
       });
       console.error('Voting error:', error);
     }
@@ -157,7 +182,7 @@ export const useVote = () => {
   // Handle comment voting with optimistic updates
   const voteComment = async (comments: Ref<Comment[]>, commentId: string, voteType: 'up' | 'down') => {
     if (!user.value) {
-      toast({ title: 'Please login to vote', color: 'red' });
+      toast.error('Please login to vote');
       return;
     }
 
@@ -168,15 +193,34 @@ export const useVote = () => {
       downvotes: number;
     }>();
 
+    let karmaChange = 0;
+    let commentAuthorId: string | undefined;
+
     // Recursively find and update the comment
     const updateCommentsOptimistically = (commentList: Comment[]): Comment[] => {
       return commentList.map(comment => {
         if (comment.id === commentId) {
+          const prevVote = comment.user_vote ?? null;
+          const prevUp = comment.upvotes ?? 0;
+          const prevDown = comment.downvotes ?? 0;
+
           previousState.set(commentId, {
-            user_vote: comment.user_vote,
-            upvotes: comment.upvotes,
-            downvotes: comment.downvotes
+            user_vote: prevVote,
+            upvotes: prevUp,
+            downvotes: prevDown
           });
+
+          commentAuthorId = comment.author.id;
+
+          // Calculate karmaChange
+          if (prevVote === 'up') karmaChange -= 1;
+          else if (prevVote === 'down') karmaChange += 1;
+
+          if (prevVote !== voteType) {
+            if (voteType === 'up') karmaChange += 1;
+            else if (voteType === 'down') karmaChange -= 1;
+          }
+
           return calculateNewVoteState(comment, voteType);
         }
 
@@ -243,6 +287,17 @@ export const useVote = () => {
         body: { comment: comments.value.find(c => c.id === commentId) }
       });
 
+      // Update karma if changed
+      if (karmaChange !== 0 && commentAuthorId) {
+        await $fetch('/api/users/update-karma', {
+          method: 'POST',
+          body: {
+            post_karma: karmaChange,
+            karma: karmaChange
+          }
+        });
+      }
+
     } catch (error) {
       // Revert to previous state on error
       const previous = previousState.get(commentId);
@@ -270,10 +325,9 @@ export const useVote = () => {
         comments.value = revertComments(comments.value);
       }
 
-      toast({ 
+      toast.error({
         title: 'Failed to vote', 
         description: 'Your vote could not be processed', 
-        color: 'red' 
       });
       console.error('Comment voting error:', error);
     }
