@@ -7,31 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       bookmarks: {
@@ -80,77 +55,174 @@ export type Database = {
           },
         ]
       }
-      chat_participants: {
+      comment_reports: {
         Row: {
-          chat_id: string
-          created_at: string
-          profile_id: string
+          comment_id: string
+          created_at: string | null
+          id: string
+          post_id: string
+          reason: string | null
+          reporter_id: string
         }
         Insert: {
-          chat_id: string
-          created_at?: string
-          profile_id: string
+          comment_id: string
+          created_at?: string | null
+          id?: string
+          post_id: string
+          reason?: string | null
+          reporter_id: string
         }
         Update: {
-          chat_id?: string
-          created_at?: string
-          profile_id?: string
+          comment_id?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          reason?: string | null
+          reporter_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "chat_participant_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "comment_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_votes: {
+        Row: {
+          comment_id: string | null
+          created_at: string | null
+          id: string
+          user_id: string | null
+          vote_type: string | null
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+          vote_type?: string | null
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+          vote_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_votes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          depth: number | null
+          downvotes: number | null
+          id: string
+          is_collapsed: boolean | null
+          is_deleted: boolean | null
+          parent_comment_id: string | null
+          post_id: string | null
+          report_count: number | null
+          reported_by: string[] | null
+          score: number | null
+          updated_at: string | null
+          upvotes: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          depth?: number | null
+          downvotes?: number | null
+          id?: string
+          is_collapsed?: boolean | null
+          is_deleted?: boolean | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          report_count?: number | null
+          reported_by?: string[] | null
+          score?: number | null
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          depth?: number | null
+          downvotes?: number | null
+          id?: string
+          is_collapsed?: boolean | null
+          is_deleted?: boolean | null
+          parent_comment_id?: string | null
+          post_id?: string | null
+          report_count?: number | null
+          reported_by?: string[] | null
+          score?: number | null
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "chat_participants_chat_id_fkey"
-            columns: ["chat_id"]
+            foreignKeyName: "comments_deleted_by_fkey"
+            columns: ["deleted_by"]
             isOneToOne: false
-            referencedRelation: "chats"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-        ]
-      }
-      chats: {
-        Row: {
-          created_at: string
-          id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-        }
-        Relationships: []
-      }
-      comments: {
-        Row: {
-          content: string | null
-          created_at: string | null
-          id: string
-          post_id: string | null
-          profile_id: string | null
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string | null
-          id?: string
-          post_id?: string | null
-          profile_id?: string | null
-        }
-        Update: {
-          content?: string | null
-          created_at?: string | null
-          id?: string
-          post_id?: string | null
-          profile_id?: string | null
-        }
-        Relationships: [
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
@@ -158,91 +230,182 @@ export type Database = {
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "comments_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       communities: {
         Row: {
-          created_at: string
-          description: string
+          banner_url: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
           id: string
+          is_official: boolean | null
+          is_private: boolean | null
+          long_description: string | null
+          member_count: number | null
           name: string
+          requires_approval: boolean | null
+          rules: Json | null
+          slug: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
-          description: string
+          banner_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
           id?: string
+          is_official?: boolean | null
+          is_private?: boolean | null
+          long_description?: string | null
+          member_count?: number | null
           name: string
+          requires_approval?: boolean | null
+          rules?: Json | null
+          slug: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
-          description?: string
+          banner_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
           id?: string
+          is_official?: boolean | null
+          is_private?: boolean | null
+          long_description?: string | null
+          member_count?: number | null
           name?: string
+          requires_approval?: boolean | null
+          rules?: Json | null
+          slug?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
       community_members: {
         Row: {
-          community_id: string
+          community_id: string | null
           id: string
-          joined_at: string
-          profile_id: string
+          is_approved: boolean | null
+          is_moderator: boolean | null
+          joined_at: string | null
+          user_id: string | null
         }
         Insert: {
-          community_id: string
+          community_id?: string | null
           id?: string
-          joined_at?: string
-          profile_id: string
+          is_approved?: boolean | null
+          is_moderator?: boolean | null
+          joined_at?: string | null
+          user_id?: string | null
         }
         Update: {
-          community_id?: string
+          community_id?: string | null
           id?: string
-          joined_at?: string
-          profile_id?: string
+          is_approved?: boolean | null
+          is_moderator?: boolean | null
+          joined_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "community_member_community_id_fkey"
+            foreignKeyName: "community_members_community_id_fkey"
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "communities"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "community_member_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "community_members_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      community_members_count: {
+      community_moderators: {
         Row: {
-          community_id: string
+          assigned_at: string | null
+          assigned_by: string | null
+          community_id: string | null
           id: string
-          online_count: number | null
+          role_id: string | null
+          user_id: string | null
         }
         Insert: {
-          community_id: string
+          assigned_at?: string | null
+          assigned_by?: string | null
+          community_id?: string | null
           id?: string
-          online_count?: number | null
+          role_id?: string | null
+          user_id?: string | null
         }
         Update: {
-          community_id?: string
+          assigned_at?: string | null
+          assigned_by?: string | null
+          community_id?: string | null
           id?: string
-          online_count?: number | null
+          role_id?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "community_members_count_community_id_fkey"
+            foreignKeyName: "community_moderators_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_moderators_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_moderators_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "moderator_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_moderators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_rules: {
+        Row: {
+          community_id: string
+          last_updated: string | null
+          rules: Json
+          version: number | null
+        }
+        Insert: {
+          community_id: string
+          last_updated?: string | null
+          rules: Json
+          version?: number | null
+        }
+        Update: {
+          community_id?: string
+          last_updated?: string | null
+          rules?: Json
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_rules_community_id_fkey"
             columns: ["community_id"]
             isOneToOne: true
             referencedRelation: "communities"
@@ -250,181 +413,146 @@ export type Database = {
           },
         ]
       }
-      community_presence: {
+      direct_messages: {
         Row: {
-          community_id: string
-          id: string
-          last_seen: string | null
-          profile_id: string
-          status: string | null
-        }
-        Insert: {
-          community_id: string
-          id?: string
-          last_seen?: string | null
-          profile_id: string
-          status?: string | null
-        }
-        Update: {
-          community_id?: string
-          id?: string
-          last_seen?: string | null
-          profile_id?: string
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_presence_community_id_fkey"
-            columns: ["community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "community_presence_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      community_tags: {
-        Row: {
-          created_at: string
-          id: string
-          tag_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          tag_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          tag_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "community_tags_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "tags"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      messages: {
-        Row: {
-          chat_id: string
-          content: string | null
-          created_at: string
-          id: string
-          profile_id: string
-        }
-        Insert: {
-          chat_id: string
-          content?: string | null
-          created_at?: string
-          id?: string
-          profile_id?: string
-        }
-        Update: {
-          chat_id?: string
-          content?: string | null
-          created_at?: string
-          id?: string
-          profile_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_chat_id_fkey"
-            columns: ["chat_id"]
-            isOneToOne: false
-            referencedRelation: "chats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      notification_queue: {
-        Row: {
-          community_id: string
+          content: string
           created_at: string | null
           id: string
-          message: string
-          post_id: string | null
-          profile_id: string
-          type: string
+          is_read: boolean | null
+          recipient_id: string | null
+          sender_id: string | null
         }
         Insert: {
-          community_id: string
+          content: string
           created_at?: string | null
           id?: string
-          message: string
-          post_id?: string | null
-          profile_id: string
-          type: string
+          is_read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
         }
         Update: {
-          community_id?: string
+          content?: string
           created_at?: string | null
           id?: string
-          message?: string
-          post_id?: string | null
-          profile_id?: string
-          type?: string
+          is_read?: boolean | null
+          recipient_id?: string | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flairs: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
-      notifications: {
+      moderator_roles: {
+        Row: {
+          id: string
+          name: string
+          permissions: Json
+        }
+        Insert: {
+          id?: string
+          name: string
+          permissions: Json
+        }
+        Update: {
+          id?: string
+          name?: string
+          permissions?: Json
+        }
+        Relationships: []
+      }
+      online_sessions: {
         Row: {
           community_id: string | null
-          created_at: string | null
           id: string
-          message: string
-          post_id: string | null
-          profile_id: string | null
-          read_at: string | null
-          type: string
+          last_active: string | null
+          user_id: string | null
         }
         Insert: {
           community_id?: string | null
-          created_at?: string | null
           id?: string
-          message: string
-          post_id?: string | null
-          profile_id?: string | null
-          read_at?: string | null
-          type: string
+          last_active?: string | null
+          user_id?: string | null
         }
         Update: {
           community_id?: string | null
-          created_at?: string | null
           id?: string
-          message?: string
-          post_id?: string | null
-          profile_id?: string | null
-          read_at?: string | null
-          type?: string
+          last_active?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_community_id_fkey"
+            foreignKeyName: "online_sessions_community_id_fkey"
             columns: ["community_id"]
             isOneToOne: false
             referencedRelation: "communities"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "notifications_post_id_fkey"
+            foreignKeyName: "online_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_flairs: {
+        Row: {
+          created_at: string
+          flair_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          flair_id?: string
+          post_id?: string
+        }
+        Update: {
+          created_at?: string
+          flair_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_flairs_flair_id_fkey"
+            columns: ["flair_id"]
+            isOneToOne: false
+            referencedRelation: "flairs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_flairs_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
@@ -432,68 +560,117 @@ export type Database = {
           },
         ]
       }
-      post_tags: {
+      post_votes: {
         Row: {
+          created_at: string | null
+          id: string | null
           post_id: string
-          tag_id: string
+          user_id: string
+          vote_type: string | null
         }
         Insert: {
+          created_at?: string | null
+          id?: string | null
           post_id: string
-          tag_id: string
+          user_id: string
+          vote_type?: string | null
         }
         Update: {
+          created_at?: string | null
+          id?: string | null
           post_id?: string
-          tag_id?: string
+          user_id?: string
+          vote_type?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "post_tags_post_id_fkey"
+            foreignKeyName: "votes_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "post_tags_tag_id_fkey"
-            columns: ["tag_id"]
+            foreignKeyName: "votes_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "tags"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
       posts: {
         Row: {
+          author_id: string | null
+          comment_count: number | null
           community_id: string | null
           content: string | null
           created_at: string | null
+          downvotes: number | null
+          hot_score: number | null
           id: string
           image_url: string | null
-          profile_id: string | null
-          title: string | null
+          is_locked: boolean | null
+          is_pinned: boolean | null
+          link_url: string | null
+          pinned_at: string | null
+          pinned_by: string | null
+          post_type: string
+          status: string | null
+          title: string
           updated_at: string | null
+          upvotes: number | null
         }
         Insert: {
+          author_id?: string | null
+          comment_count?: number | null
           community_id?: string | null
           content?: string | null
           created_at?: string | null
+          downvotes?: number | null
+          hot_score?: number | null
           id?: string
           image_url?: string | null
-          profile_id?: string | null
-          title?: string | null
+          is_locked?: boolean | null
+          is_pinned?: boolean | null
+          link_url?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          post_type: string
+          status?: string | null
+          title: string
           updated_at?: string | null
+          upvotes?: number | null
         }
         Update: {
+          author_id?: string | null
+          comment_count?: number | null
           community_id?: string | null
           content?: string | null
           created_at?: string | null
+          downvotes?: number | null
+          hot_score?: number | null
           id?: string
           image_url?: string | null
-          profile_id?: string | null
-          title?: string | null
+          is_locked?: boolean | null
+          is_pinned?: boolean | null
+          link_url?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
+          post_type?: string
+          status?: string | null
+          title?: string
           updated_at?: string | null
+          upvotes?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "posts_community_id_fkey"
             columns: ["community_id"]
@@ -502,8 +679,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "posts_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "posts_pinned_by_fkey"
+            columns: ["pinned_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -512,1161 +689,124 @@ export type Database = {
       }
       profiles: {
         Row: {
-          about: string | null
           avatar_url: string | null
+          badges: string[] | null
+          banned_until: string | null
+          bio: string | null
+          comment_karma: number | null
           created_at: string | null
+          display_name: string | null
           email: string | null
           id: string
+          is_verified: boolean | null
+          karma: number | null
+          location: string | null
+          post_karma: number | null
           updated_at: string | null
-          username: string | null
+          username: string
+          website: string | null
         }
         Insert: {
-          about?: string | null
           avatar_url?: string | null
+          badges?: string[] | null
+          banned_until?: string | null
+          bio?: string | null
+          comment_karma?: number | null
           created_at?: string | null
-          email?: string | null
-          id: string
-          updated_at?: string | null
-          username?: string | null
-        }
-        Update: {
-          about?: string | null
-          avatar_url?: string | null
-          created_at?: string | null
+          display_name?: string | null
           email?: string | null
           id?: string
+          is_verified?: boolean | null
+          karma?: number | null
+          location?: string | null
+          post_karma?: number | null
           updated_at?: string | null
-          username?: string | null
+          username: string
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          badges?: string[] | null
+          banned_until?: string | null
+          bio?: string | null
+          comment_karma?: number | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          is_verified?: boolean | null
+          karma?: number | null
+          location?: string | null
+          post_karma?: number | null
+          updated_at?: string | null
+          username?: string
+          website?: string | null
         }
         Relationships: []
-      }
-      tags: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          title: string | null
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          title?: string | null
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          title?: string | null
-        }
-        Relationships: []
-      }
-      user_presence: {
-        Row: {
-          current_community_id: string | null
-          id: string
-          last_seen: string | null
-          profile_id: string
-          status: string | null
-        }
-        Insert: {
-          current_community_id?: string | null
-          id?: string
-          last_seen?: string | null
-          profile_id: string
-          status?: string | null
-        }
-        Update: {
-          current_community_id?: string | null
-          id?: string
-          last_seen?: string | null
-          profile_id?: string
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_presence_current_community_id_fkey"
-            columns: ["current_community_id"]
-            isOneToOne: false
-            referencedRelation: "communities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_presence_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      votes: {
-        Row: {
-          created_at: string | null
-          id: string
-          profile_id: string | null
-          target_id: string
-          target_type: string
-          vote_type: number
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          profile_id?: string | null
-          target_id: string
-          target_type: string
-          vote_type: number
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          profile_id?: string | null
-          target_id?: string
-          target_type?: string
-          vote_type?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "votes_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      create_update_vote: {
-        Args: {
-          p_post_id: string
-          p_user_id: string
-          p_new_vote_value: number
-        }
-        Returns: {
-          post_id: string
-          profile_id: string
-          value: number
-        }[]
-      }
-      get_chat_between_users: {
-        Args: {
-          user1_id: string
-          user2_id: string
-        }
-        Returns: {
-          chat_id: string
-        }[]
-      }
-      get_recent_posts_per_community: {
-        Args: {
-          community_ids: string[]
-          posts_limit: number
-        }
-        Returns: {
-          id: string
-          title: string
-          content: string
-          created_at: string
-          community_id: string
-          profile_id: string
-          communities: Json
-          profiles: Json
-          comments: Json
-          votes: Json[]
-        }[]
-      }
-      join_community: {
-        Args: {
-          p_profile_id: string
-          p_community_id: string
-        }
-        Returns: Json
-      }
-      leave_community: {
-        Args: {
-          p_profile_id: string
-          p_community_id: string
-        }
-        Returns: Json
-      }
-      pgroonga_command:
-        | {
-            Args: {
-              groongacommand: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              groongacommand: string
-              arguments: string[]
-            }
-            Returns: string
-          }
-      pgroonga_command_escape_value: {
-        Args: {
-          value: string
-        }
+      format_display_name: {
+        Args: { user_metadata: Json; email_address: string }
         Returns: string
       }
-      pgroonga_condition: {
-        Args: {
-          query?: string
-          weights?: number[]
-          scorers?: string[]
-          schema_name?: string
-          index_name?: string
-          column_name?: string
-          fuzzy_max_distance_ratio?: number
-        }
-        Returns: Database["public"]["CompositeTypes"]["pgroonga_condition"]
+      format_proper_case: {
+        Args: { input_text: string }
+        Returns: string
       }
-      pgroonga_equal_query_text_array: {
-        Args: {
-          targets: string[]
-          query: string
-        }
-        Returns: boolean
+      format_username_from_email: {
+        Args: { email_address: string }
+        Returns: string
       }
-      pgroonga_equal_query_text_array_condition:
-        | {
-            Args: {
-              targets: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              targets: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_equal_query_varchar_array: {
-        Args: {
-          targets: string[]
-          query: string
-        }
-        Returns: boolean
+      get_community_growth: {
+        Args: { comm_id: string }
+        Returns: string
       }
-      pgroonga_equal_query_varchar_array_condition:
-        | {
-            Args: {
-              targets: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              targets: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_equal_text: {
-        Args: {
-          target: string
-          other: string
-        }
-        Returns: boolean
+      get_community_online_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          community_id: string
+          online_count: number
+        }[]
       }
-      pgroonga_equal_text_condition:
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_equal_varchar: {
-        Args: {
-          target: string
-          other: string
-        }
-        Returns: boolean
-      }
-      pgroonga_equal_varchar_condition:
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_escape:
-        | {
-            Args: {
-              value: boolean
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              value: string
-              special_characters: string
-            }
-            Returns: string
-          }
-      pgroonga_flush: {
-        Args: {
-          indexname: unknown
-        }
-        Returns: boolean
-      }
-      pgroonga_handler: {
-        Args: {
-          "": unknown
-        }
+      gtrgm_compress: {
+        Args: { "": unknown }
         Returns: unknown
       }
-      pgroonga_highlight_html:
-        | {
-            Args: {
-              target: string
-              keywords: string[]
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              target: string
-              keywords: string[]
-              indexname: unknown
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              targets: string[]
-              keywords: string[]
-            }
-            Returns: string[]
-          }
-        | {
-            Args: {
-              targets: string[]
-              keywords: string[]
-              indexname: unknown
-            }
-            Returns: string[]
-          }
-      pgroonga_index_column_name:
-        | {
-            Args: {
-              indexname: unknown
-              columnindex: number
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              indexname: unknown
-              columnname: string
-            }
-            Returns: string
-          }
-      pgroonga_is_writable: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
       }
-      pgroonga_list_broken_indexes: {
-        Args: Record<PropertyKey, never>
-        Returns: string[]
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
       }
-      pgroonga_list_lagged_indexes: {
-        Args: Record<PropertyKey, never>
-        Returns: string[]
-      }
-      pgroonga_match_positions_byte:
-        | {
-            Args: {
-              target: string
-              keywords: string[]
-            }
-            Returns: number[]
-          }
-        | {
-            Args: {
-              target: string
-              keywords: string[]
-              indexname: unknown
-            }
-            Returns: number[]
-          }
-      pgroonga_match_positions_character:
-        | {
-            Args: {
-              target: string
-              keywords: string[]
-            }
-            Returns: number[]
-          }
-        | {
-            Args: {
-              target: string
-              keywords: string[]
-              indexname: unknown
-            }
-            Returns: number[]
-          }
-      pgroonga_match_term:
-        | {
-            Args: {
-              target: string[]
-              term: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string[]
-              term: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              term: string
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              term: string
-            }
-            Returns: boolean
-          }
-      pgroonga_match_text_array_condition:
-        | {
-            Args: {
-              target: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_match_text_array_condition_with_scorers: {
-        Args: {
-          target: string[]
-          condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition_with_scorers"]
-        }
-        Returns: boolean
-      }
-      pgroonga_match_text_condition:
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_match_text_condition_with_scorers: {
-        Args: {
-          target: string
-          condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition_with_scorers"]
-        }
-        Returns: boolean
-      }
-      pgroonga_match_varchar_condition:
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_match_varchar_condition_with_scorers: {
-        Args: {
-          target: string
-          condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition_with_scorers"]
-        }
-        Returns: boolean
-      }
-      pgroonga_normalize:
-        | {
-            Args: {
-              target: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              target: string
-              normalizername: string
-            }
-            Returns: string
-          }
-      pgroonga_prefix_varchar_condition:
-        | {
-            Args: {
-              target: string
-              conditoin: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              conditoin: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_query_escape: {
-        Args: {
-          query: string
-        }
-        Returns: string
-      }
-      pgroonga_query_expand: {
-        Args: {
-          tablename: unknown
-          termcolumnname: string
-          synonymscolumnname: string
-          query: string
-        }
-        Returns: string
-      }
-      pgroonga_query_extract_keywords: {
-        Args: {
-          query: string
-          index_name?: string
-        }
-        Returns: string[]
-      }
-      pgroonga_query_text_array_condition:
-        | {
-            Args: {
-              targets: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              targets: string[]
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_query_text_array_condition_with_scorers: {
-        Args: {
-          targets: string[]
-          condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition_with_scorers"]
-        }
-        Returns: boolean
-      }
-      pgroonga_query_text_condition:
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_query_text_condition_with_scorers: {
-        Args: {
-          target: string
-          condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition_with_scorers"]
-        }
-        Returns: boolean
-      }
-      pgroonga_query_varchar_condition:
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              target: string
-              condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition"]
-            }
-            Returns: boolean
-          }
-      pgroonga_query_varchar_condition_with_scorers: {
-        Args: {
-          target: string
-          condition: Database["public"]["CompositeTypes"]["pgroonga_full_text_search_condition_with_scorers"]
-        }
-        Returns: boolean
-      }
-      pgroonga_regexp_text_array: {
-        Args: {
-          targets: string[]
-          pattern: string
-        }
-        Returns: boolean
-      }
-      pgroonga_regexp_text_array_condition: {
-        Args: {
-          targets: string[]
-          pattern: Database["public"]["CompositeTypes"]["pgroonga_condition"]
-        }
-        Returns: boolean
-      }
-      pgroonga_result_to_jsonb_objects: {
-        Args: {
-          result: Json
-        }
-        Returns: Json
-      }
-      pgroonga_result_to_recordset: {
-        Args: {
-          result: Json
-        }
-        Returns: Record<string, unknown>[]
-      }
-      pgroonga_score:
-        | {
-            Args: {
-              row: Record<string, unknown>
-            }
-            Returns: number
-          }
-        | {
-            Args: {
-              tableoid: unknown
-              ctid: unknown
-            }
-            Returns: number
-          }
-      pgroonga_set_writable: {
-        Args: {
-          newwritable: boolean
-        }
-        Returns: boolean
-      }
-      pgroonga_snippet_html: {
-        Args: {
-          target: string
-          keywords: string[]
-          width?: number
-        }
-        Returns: string[]
-      }
-      pgroonga_table_name: {
-        Args: {
-          indexname: unknown
-        }
-        Returns: string
-      }
-      pgroonga_tokenize: {
-        Args: {
-          target: string
-        }
-        Returns: Json[]
-      }
-      pgroonga_vacuum: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      pgroonga_wal_apply:
-        | {
-            Args: Record<PropertyKey, never>
-            Returns: number
-          }
-        | {
-            Args: {
-              indexname: unknown
-            }
-            Returns: number
-          }
-      pgroonga_wal_set_applied_position:
-        | {
-            Args: Record<PropertyKey, never>
-            Returns: boolean
-          }
-        | {
-            Args: {
-              block: number
-              offset: number
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              indexname: unknown
-            }
-            Returns: boolean
-          }
-        | {
-            Args: {
-              indexname: unknown
-              block: number
-              offset: number
-            }
-            Returns: boolean
-          }
-      pgroonga_wal_status: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          name: string
-          oid: unknown
-          current_block: number
-          current_offset: number
-          current_size: number
-          last_block: number
-          last_offset: number
-          last_size: number
-        }[]
-      }
-      pgroonga_wal_truncate:
-        | {
-            Args: Record<PropertyKey, never>
-            Returns: number
-          }
-        | {
-            Args: {
-              indexname: unknown
-            }
-            Returns: number
-          }
-      queue_community_notification: {
-        Args: {
-          p_community_id: string
-          p_post_id?: string
-        }
-        Returns: Json
-      }
-      update_user_community_presence: {
-        Args: {
-          p_profile_id: string
-          p_new_community_id: string
-        }
+      gtrgm_options: {
+        Args: { "": unknown }
         Returns: undefined
       }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      pgroonga_condition: {
-        query: string | null
-        weigths: number[] | null
-        scorers: string[] | null
-        schema_name: string | null
-        index_name: string | null
-        column_name: string | null
-        fuzzy_max_distance_ratio: number | null
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
       }
-      pgroonga_full_text_search_condition: {
-        query: string | null
-        weigths: number[] | null
-        indexname: string | null
-      }
-      pgroonga_full_text_search_condition_with_scorers: {
-        query: string | null
-        weigths: number[] | null
-        scorers: string[] | null
-        indexname: string | null
-      }
-    }
-  }
-  storage: {
-    Tables: {
-      buckets: {
-        Row: {
-          allowed_mime_types: string[] | null
-          avif_autodetection: boolean | null
-          created_at: string | null
-          file_size_limit: number | null
-          id: string
-          name: string
-          owner: string | null
-          owner_id: string | null
-          public: boolean | null
-          updated_at: string | null
-        }
-        Insert: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id: string
-          name: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          updated_at?: string | null
-        }
-        Update: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id?: string
-          name?: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      migrations: {
-        Row: {
-          executed_at: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Insert: {
-          executed_at?: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Update: {
-          executed_at?: string | null
-          hash?: string
-          id?: number
-          name?: string
-        }
-        Relationships: []
-      }
-      objects: {
-        Row: {
-          bucket_id: string | null
-          created_at: string | null
-          id: string
-          last_accessed_at: string | null
-          metadata: Json | null
-          name: string | null
-          owner: string | null
-          owner_id: string | null
-          path_tokens: string[] | null
-          updated_at: string | null
-          user_metadata: Json | null
-          version: string | null
-        }
-        Insert: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          user_metadata?: Json | null
-          version?: string | null
-        }
-        Update: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          user_metadata?: Json | null
-          version?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "objects_bucketId_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      s3_multipart_uploads: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          id: string
-          in_progress_size: number
-          key: string
-          owner_id: string | null
-          upload_signature: string
-          user_metadata: Json | null
-          version: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          id: string
-          in_progress_size?: number
-          key: string
-          owner_id?: string | null
-          upload_signature: string
-          user_metadata?: Json | null
-          version: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          id?: string
-          in_progress_size?: number
-          key?: string
-          owner_id?: string | null
-          upload_signature?: string
-          user_metadata?: Json | null
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      s3_multipart_uploads_parts: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          etag: string
-          id: string
-          key: string
-          owner_id: string | null
-          part_number: number
-          size: number
-          upload_id: string
-          version: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          etag: string
-          id?: string
-          key: string
-          owner_id?: string | null
-          part_number: number
-          size?: number
-          upload_id: string
-          version: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          etag?: string
-          id?: string
-          key?: string
-          owner_id?: string | null
-          part_number?: number
-          size?: number
-          upload_id?: string
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
-            columns: ["upload_id"]
-            isOneToOne: false
-            referencedRelation: "s3_multipart_uploads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      can_insert_object: {
-        Args: {
-          bucketid: string
-          name: string
-          owner: string
-          metadata: Json
-        }
+      increment_comment_report_count: {
+        Args: { comment_id: string }
         Returns: undefined
       }
-      extension: {
-        Args: {
-          name: string
-        }
-        Returns: string
+      set_limit: {
+        Args: { "": number }
+        Returns: number
       }
-      filename: {
-        Args: {
-          name: string
-        }
-        Returns: string
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
-      foldername: {
-        Args: {
-          name: string
-        }
+      show_trgm: {
+        Args: { "": string }
         Returns: string[]
-      }
-      get_size_by_bucket: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          size: number
-          bucket_id: string
-        }[]
-      }
-      list_multipart_uploads_with_delimiter: {
-        Args: {
-          bucket_id: string
-          prefix_param: string
-          delimiter_param: string
-          max_keys?: number
-          next_key_token?: string
-          next_upload_token?: string
-        }
-        Returns: {
-          key: string
-          id: string
-          created_at: string
-        }[]
-      }
-      list_objects_with_delimiter: {
-        Args: {
-          bucket_id: string
-          prefix_param: string
-          delimiter_param: string
-          max_keys?: number
-          start_after?: string
-          next_token?: string
-        }
-        Returns: {
-          name: string
-          id: string
-          metadata: Json
-          updated_at: string
-        }[]
-      }
-      operation: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      search: {
-        Args: {
-          prefix: string
-          bucketname: string
-          limits?: number
-          levels?: number
-          offsets?: number
-          search?: string
-          sortcolumn?: string
-          sortorder?: string
-        }
-        Returns: {
-          name: string
-          id: string
-          updated_at: string
-          created_at: string
-          last_accessed_at: string
-          metadata: Json
-        }[]
       }
     }
     Enums: {
@@ -1678,27 +818,29 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1706,20 +848,22 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1727,20 +871,22 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1748,21 +894,23 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -1771,6 +919,12 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
