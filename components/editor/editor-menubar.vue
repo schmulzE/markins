@@ -21,63 +21,16 @@
 <script setup lang="ts">
 import MenuItem from './menu-item.vue';
 import type { Editor } from '@tiptap/vue-3';
-import { useToast } from 'vue-toastification';
-
-const toast = useToast();
-const emit = defineEmits(["image-src"]);
 
 const props = defineProps<{
   editor: Editor,
-  image?: string,
-  allowImageUpload?: boolean,
 }>();
+
 
 const isLinkActive = computed(() => {
   return props.editor?.isActive('link');
 });
 
-const url = ref<string>('');
-
-if(props.image && props.editor){
-  url.value = props.image
-  props.editor.chain().focus().setImage({ src: url.value }).run()
-}
-
-const addImage =() => {
-
-  if(!props.allowImageUpload){
-    toast.info('Only external links to images or files are allowed in comments.')
-    return;
-  }
-
-  const input = document.createElement('input');
-  input.type="file";
-  setTimeout(function(){
-    input.click();
-  },200);
-  input.addEventListener('change', async (e) => {
-    try {
-      const file = (e.target as HTMLInputElement).files![0];
-      input.setAttribute("disabled", '');
-      
-      if (!file) {
-        throw new Error('You must select an image to upload.')
-      }
-      
-      emit('image-src', file)
-      const imageUrl = URL.createObjectURL(file);
-
-      props.editor.chain().focus().setImage({ src: imageUrl }).run();
-
-    } catch (error) {
-      if(error instanceof Error){
-        throw new Error(error.message)
-      }
-    } finally {
-      input.removeAttribute('disabled');
-    }
-  })
-};
 
 // Toggle link function
 const toggleLink = () => {
@@ -136,18 +89,6 @@ const items: MenuItem[] = [
     isActive: () => props.editor.isActive('paragraph')
   },
   {
-    icon: 'i-ri-list-unordered',
-    title: 'Bullet List',
-    action: () => props.editor.chain().focus().toggleBulletList().run(),
-    isActive: () => props.editor.isActive('bulletList')
-  },
-  {
-    icon: 'i-ri-list-ordered',
-    title: 'Ordered List',
-    action: () => props.editor.chain().focus().toggleOrderedList().run(),
-    isActive: () => props.editor.isActive('orderedList')
-  },
-  {
     icon: 'i-ri-link',
     title: 'Link',
     action: () => toggleLink(),
@@ -161,12 +102,6 @@ const items: MenuItem[] = [
     title: 'Blockquote',
     action: () => props.editor.chain().focus().toggleBlockquote().run(),
     isActive: () => props.editor.isActive('blockquote')
-  },
-  {
-    icon: 'i-ri-image-2-fill',
-    title: 'Image',
-    action: () => addImage(),
-    isActive: () => props.editor.isActive('image')
   },
   {
     icon: 'i-ri-separator',

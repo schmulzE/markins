@@ -1,31 +1,30 @@
 <template>
-  <form @submit.prevent="submitForm">
+  <form @submit.prevent="submitComment">
     <div
     v-if="editor"
     class="editor"
     >
     <EditorMenubar 
       class="editor_header bg-base-100"
-      :image="image"
       :editor="editor"
-      :allow-image-upload="allowImageUpload"
-      @image-src="getImageUrl"
     />
 
     <EditorContent
-      v-model="contents" 
       class="editor_content outline-none text-left p-1 border-0 bg-base-100" 
       :editor="editor"
     />
     
   </div>
   <button 
-  v-show="editor && showButton" 
+  v-show="editor" 
   type="submit" 
-  :disabled="!user" 
-  class="bg-[seagreen] text-white mt-4 p-2 capitalize disabled:cursor-not-allowed disabled:bg-slate-400"
+  :disabled="!user && !editor?.getText().trim()" 
+  class="bg-[#297D4E] hover:bg-[#1f5a37] btn text-white mt-4 flex justify-end self-end"
   >
-    <span v-if="!loading">post your comment</span>
+    <span v-if="!loading" class="flex items-center">
+      <i class="h-4 w-4 mr-2 i-lucide-send" />
+      Comment
+    </span>
     <span v-else class="loading loading-spinner text-white inline-block mx-14"/>
   </button>
 </form>
@@ -35,33 +34,18 @@
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import StarterKit from '@tiptap/starter-kit';
-import Highlight from '@tiptap/extension-highlight';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
+import Highlight from '@tiptap/extension-highlight';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 
-const emit = defineEmits(['update-image', 'create-comment', 'post-content']);
+const emit = defineEmits(['submit-comment', 'post-content']);
 const props = defineProps<{
-  payload?: string,
-  image?: string,
   loading?: boolean,
   allowImageUpload?: boolean,
 }>();
 
-const route = useRoute();
 const user = useSupabaseUser();
-const contents = ref(props.payload);
-
-const getImageUrl = (url: string, path: string) => {
-  emit('update-image', url, path)
-}
-
-const showButton = computed(() => {
-  if(route.params.slug){
-    return route.path == `/post/${route.params.slug[0]}/${route.params.slug[1]}`
-  }
-  return false;
-})
 
 const editor = useEditor({
   extensions: [
@@ -78,18 +62,18 @@ const editor = useEditor({
   }),
   ...(props.allowImageUpload ? [Image] : []),
 ],
-  content: contents.value,
-  onUpdate({ editor }) {
-    contents.value = editor.getText();
-    emit('post-content', contents.value)
-  },
+//   content: contents.value,
+//   onUpdate({ editor }) {
+//     contents.value = editor.getText();
+//     emit('post-content', contents.value)
+//   },
 })
 
-const submitForm = () => {
+const submitComment = () => {
   // Access the Tiptap editor content
-  const editorContent = editor.value?.getHTML();
+  const editorContent = editor.value?.getText();
   // Pass the editor content to the parent component's submitHandler
-  emit('create-comment', editorContent);
+  emit('submit-comment', editorContent);
   // Clear the Tiptap editor content
   editor.value?.commands.setContent('') // Set it to an empty paragraph or any default value
 };
