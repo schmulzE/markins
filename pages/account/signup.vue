@@ -2,14 +2,14 @@
   <RegisterLayout>
     <div>
       <div data-theme="light" class="flex flex-col items-center justify-center h-screen bg-base-300">
-        <div class="w-full max-w-md p-6 space-y-6 bg-base-100 rounded-lg shadow-lg">
-          <h1 class="text-3xl font-bold text-center">Sign up</h1>
+        <div class="w-full max-w-md p-6 space-y-4 bg-base-100 rounded-lg shadow-lg">
+          <h1 class="text-3xl font-bold text-center">Sign Up</h1>
           <p class="text-center text-sm text-accent-neutral">
-            Already signed up? <NuxtLink to="/account/signin" class="text-blue-400">sign in</NuxtLink>
+            Already signed up? <NuxtLink to="/account/signin" class="text-green-600 underline">Sign in</NuxtLink>
           </p>
           <form class="space-y-4" @submit.prevent="handleStandardSignup" >
             <div>
-              <label for="username" class="block mb-2 font-bold text-sm">Username</label>
+              <label for="username" class="block mb-2 font-medium text-sm">Username</label>
               <input 
               id="username" 
               v-model="state.username"  
@@ -20,7 +20,7 @@
               >
             </div>
             <div>
-              <label for="email" class="block mb-2 font-bold text-sm">Email</label>
+              <label for="email" class="block mb-2 font-medium text-sm">Email</label>
               <input 
               id="email" 
               v-model="state.email" 
@@ -31,7 +31,7 @@
               >
             </div>
             <div>
-              <label for="password" class="block mb-2 font-bold text-sm ">Password</label>
+              <label for="password" class="block mb-2 font-medium text-sm ">Password</label>
               <input 
               id="password" 
               v-model="state.password" 
@@ -42,7 +42,7 @@
               >
             </div>
             <div>
-              <label for="confirmPassword" class="block mb-2 font-bold text-sm">Confirm Password</label>
+              <label for="confirmPassword" class="block mb-2 font-medium text-sm">Confirm Password</label>
               <input 
               id="confirmPassword" 
               v-model="state.confirmPassword" 
@@ -55,13 +55,21 @@
             <button 
             :disabled="state.loading || state.password === '' || (state.confirmPassword !== state.password)" 
             type="submit"
-            class="w-full py-2 text-white bg-green-600 rounded-md disabled:bg-green-400 disabled:cursor-not-allowed hover:bg-green-700"
+            class="w-full py-2 text-white bg-green-600 rounded-md disabled:bg-neutral-300 disabled:cursor-not-allowed hover:bg-green-700"
             >
-              Sign up
+              Continue
             </button>
               <p v-if="state.success" class="mt-4 text-lg text-center">You have successfully signed up. Please check your email for a link to confirm your email address and proceed.</p>
           </form>
-          <p class="mt-4 text-xs text-center text-gray-500">
+          <div class="text-center">OR</div>
+          <button 
+            class="btn btn-outline border border-gray-300 w-full font-medium"
+            @click="signInWithGoogle" 
+          >
+            <i class="i-flat-color-icons-google w-4 h-4" />
+            Continue with Google
+          </button>
+          <p class="mt-2 text-xs text-center text-gray-500">
             By proceeding, I agree to the <NuxtLink to="#">Privacy Statement</NuxtLink> and <NuxtLink to="#">Terms of Service</NuxtLink>
           </p>
         </div>
@@ -122,6 +130,19 @@ const supabase = useSupabaseClient();
       state.loading = false
     }
   }
+
+  const signInWithGoogle = async () => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: 'http://localhost:3000'
+    }
+  })
+
+  if (error) {
+    console.error('Google Sign-In Error:', error.message)
+  }
+}
 
   // const getURL = () => {
   //   let url =
