@@ -171,7 +171,7 @@
                       </div>
                       <div class="flex items-center space-x-1">
                         <div class="h-2 w-2 rounded-full bg-green-500"/>
-                        <span>{{ onlineMembers }} online</span>
+                        <span>{{ onlineCounts[community.id ?? ''] || 0 }} online</span>
                       </div>
                       <template v-if="viewMode === 'grid'">
                         <div class="flex items-center space-x-1">
@@ -224,6 +224,11 @@
 import { useToast } from 'vue-toastification';
 import type { Community } from '~/types/utility';
 import type { Database } from '~/types/database.types';
+import { useCommunityMembership } from '~/composables/useCommunityMembership';
+
+const { joinCommunity, leaveCommunity } = useCommunityMembership()
+const { onlineCounts } = useOnlineCounts()
+
 
 const toast = useToast();
 const user = useSupabaseUser();
@@ -308,13 +313,31 @@ watchEffect(() => {
   filteredCommunities.value = filtered;
 })
 
-const handleJoinCommunity = (communityId: string) => {
-  if (communities.value) {
-    communities.value = communities.value.map((community) =>
-      community.id === communityId ? { ...community, is_joined: !community.is_joined } : community,
-    )
+const handleJoinCommunity = async (communityId: string) => {
+  if (!user.value) {
+    toast.error('You need to be logged in to join a community.')
+    return
+  }
+
+  const community = communities.value?.find(c => c.id === communityId)
+  if (!community) return
+
+  try {
+    if (community.is_joined) {
+      await leaveCommunity(communityId)
+      toast.success(`Left ${community.name}`)
+    } else {
+      await joinCommunity(communityId)
+      toast.success(`Joined ${community.name}`)
+    }
+
+    community.is_joined = !community.is_joined
+  } catch (err) {
+    toast.error(`Failed to update membership. Please try again.`)
+    console.error(err)
   }
 }
+
 
 const getSortIcon = (sort : string) => {
   switch (sort) {
@@ -338,24 +361,26 @@ async function getCommunityGrowthRate(communityId: string) {
   return stats || '0%';
 }
 
+
 watch(
   [() => communities.value, () => user.value],
-  () => {
+  async () => {
     if (!communities.value) return;
-    // Add is_joined property to each community
-    communities.value.forEach((community) => {
+
+    for (const community of communities.value) {
       community.is_joined = !!community.community_members?.some(
         (member) => member.user_id === user.value?.id
-      );
+      )
+
       if (Array.isArray(community.posts_today)) {
-        community.posts_today = community.posts_today[0]?.count || 0;
+        community.posts_today = community.posts_today[0]?.count || 0
       }
-      getCommunityGrowthRate(community.id!).then(rate => {
-        community.growth_rate = rate;
-      });
-    });
-    filteredCommunities.value = [...communities.value];
+
+      community.growth_rate = await getCommunityGrowthRate(community.id!)
+    }
+
+    filteredCommunities.value = [...communities.value]
   },
   { immediate: true }
-)
+);
 </script>
