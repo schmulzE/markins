@@ -10,16 +10,17 @@ export default defineEventHandler(async (event) => {
 
     // Fetch the posts
     let postsQuery = client
-      .from("posts")
-      .select(`
-        *,
-        author:profiles!posts_author_id_fkey(*), 
-        community:communities(*), 
-        comments:comments!comments_post_id_fkey(*),
-        votes(user_id, vote_type),
-        bookmarks:bookmarks(*)
-      `)
-      .eq("community_id", id!);
+    .from("posts")
+    .select(`
+      *,
+      author:profiles!posts_author_id_fkey(*), 
+      community:communities(*), 
+      comments:comments!comments_post_id_fkey(*),
+      votes:post_votes(user_id, vote_type),
+      bookmarks:bookmarks(*),
+      post_flairs(flairs(*))
+    `)
+    .eq("community_id", id!);
 
     if (sort === 'new') {
       postsQuery = postsQuery.order('created_at', { ascending: false });

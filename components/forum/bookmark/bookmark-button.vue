@@ -1,11 +1,11 @@
 <template>
   <button 
-  class="btn-sm btn-ghost flex items-center cursor-pointer"
+  class="btn-sm btn-ghost flex items-center cursor-pointer dark:hover:bg-transparent"
   :class="`h-8 px-3 hover:bg-gray-100 ${isBookmarked ? 'text-[#297D4E]' : ''}`"
   @click.stop="handleClick"
   >
     <i :class="`h-4 w-4 mr-2 ${isBookmarked ? 'i-mdi-bookmark' : 'i-mdi-bookmark-outline'}`" />
-    Save
+    <span class="hidden md:block">Save</span>
   </button>
 </template>
 

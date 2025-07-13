@@ -8,12 +8,12 @@
 <script setup lang="ts">
 import Modal from '~/components/ui/modal.vue';
 // Get access to all plugin provides
-const { $initializePresence } = useNuxtApp()
+// const { $initializePresence } = useNuxtApp()
 
 // Use the provided function
-onMounted(() => {
-  $initializePresence()
-})
+// onMounted(() => {
+//   $initializePresence()
+// })
 
 useHead({
   script: [

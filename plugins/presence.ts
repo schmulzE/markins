@@ -1,12 +1,12 @@
 import { defineNuxtPlugin } from '#app'
-import { usePresence } from '~/composables/usePresence'
+// import { usePresence } from '~/composables/usePresence'
 
 export default defineNuxtPlugin(() => {
-  const { startPresenceTracking } = usePresence()
+//   const { startPresenceTracking } = usePresence()
   
-  return {
-    provide: {
-      initializePresence: startPresenceTracking,
-    }
-  }
+//   return {
+//     provide: {
+//       initializePresence: startPresenceTracking,
+//     }
+//   }
 })

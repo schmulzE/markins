@@ -1,19 +1,19 @@
+import type { Database } from "~/types/database.types";
 import { serverSupabaseClient } from "#supabase/server";
-import type { Database } from "../../../types/database.types";
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const id = event.context.params!.id;
+  const client = await serverSupabaseClient<Database>(event);
 
   try {
     if (!body)
     throw createError({ statusCode: 400, statusMessage: "Bad Request" });
   
-    const client = await serverSupabaseClient<Database>(event);
+    if (!id)
+      throw createError({ statusCode: 400, statusMessage: "Post ID is required" });
 
-    const { title, content, image_url } = body;
-
-    const { data, error } = await client.from("posts").update({ title, content, image_url }).eq("id", id).select()
+    const { data, error } = await client.from("posts").update(body).eq("id", id).select()
 
     if (error) {
       throw createError({ statusMessage: error.message })

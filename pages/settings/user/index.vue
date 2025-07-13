@@ -1,20 +1,23 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import BaseLayout from '~/layouts/base.vue';
 import { useToast } from 'vue-toastification';
 import type { Profile } from '~/types/utility';
 import { useSupabaseClient, useSupabaseUser } from '#imports';
+import ForumNavbar from '~/components/header/forum-navbar.vue';
 import { useImageHandler } from '~/composables/useImageHandler';
 
 const route = useRoute();
 const toast = useToast();
+const router = useRouter();
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 
 const avatarUrl = ref("");
 const isLoading = ref(false);
 const avatarFile = ref<File | null>(null);
-const saveStatus = ref<"idle" | "saving" | "saved" | "error">("idle");
 const username = route.query?.username || '';
+const saveStatus = ref<"idle" | "saving" | "saved" | "error">("idle");
 
 const { getImageUrl, uploadImage, deleteImage } = useImageHandler();
 
@@ -63,12 +66,14 @@ const onFileChange = async (e: Event) => {
 // Send profile data to backend server
 const handleSave = async () => {
   if (!profile.value) return;
+
   isLoading.value = true;
   saveStatus.value = "saving";
+
   try {
     // Send updated profile to backend (adjust endpoint as needed)
     await $fetch(`/api/user/${profile.value.id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: {
         display_name: profile.value.display_name,
         bio: profile.value.bio,
@@ -77,56 +82,56 @@ const handleSave = async () => {
         avatar_url: avatarUrl.value || profile.value.avatar_url,
       },
     });
+    // Update local profile state
     saveStatus.value = "saved";
     toast.success('Profile updated successfully');
-  } catch {
+    router.push(`/user/${profile.value.username}`);
+
+  } catch(error) {
     saveStatus.value = "error";
+    isLoading.value = false;
+    console.error('Failed to update profile:', error);
     toast.error('Failed to update profile');
   }
   isLoading.value = false;
-  setTimeout(() => saveStatus.value = "idle", 2000);
 };
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
-      <div class="flex h-16 items-center justify-between px-4">
-        <NuxtLink to="/posts" class="ml-4">
-          <img src="/svg/markins-logo.svg" class="h-8 hidden md:block" >
-          <img src="/svg/markins.svg" class="h-7 md:hidden" >
-        </NuxtLink>
-
-        <div class="flex items-center space-x-4">
-          <NuxtLink :to="`/user/${profile?.username}`">
-            <button class="btn btn-outline">
-              <i class="i-lucide-eye h-4 w-4 mr-2" />
-              View Profile
+  <BaseLayout>
+    <template #header>
+      <ForumNavbar>
+        <template  #dynamic-content>
+          <nav class="flex items-center space-x-2 md:space-x-4">
+            <NuxtLink :to="`/user/${profile?.username}`">
+            <button class="btn btn-outline dark:border-base-300">
+              <i class="i-lucide-eye h-4 w-4 md:mr-2" />
+              <span class="hidden md:block">View Profile</span>
             </button>
           </NuxtLink>
           <button 
-            class="bg-[#297D4E] btn text-white hover:bg-[#1f5a37]" 
+            class="bg-[#297D4E] btn text-base-100 hover:bg-[#1f5a37]" 
             :disabled="isLoading"
             @click="handleSave"
           >
-            <span v-if="saveStatus === 'saving'" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-            <i v-else-if="saveStatus === 'saved'" class="h-4 w-4 mr-2 i-lucide-check-circle" />
-            <i v-else-if="saveStatus === 'idle'" class="h-4 w-4 mr-2 i-lucide-save" />
-            {{ saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save Changes' }}
+            <span v-if="saveStatus === 'saving'" class="animate-spin rounded-full h-4 w-4 border-b-2 border-base-100 md:mr-2" />
+            <i v-else-if="saveStatus === 'saved'" class="h-4 w-4 md:mr-2 i-lucide-check-circle" />
+            <i v-else-if="saveStatus === 'idle'" class="h-4 w-4 md:mr-2 i-lucide-save" />
+            <span class="hidden md:block">{{ saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : 'Save Changes' }}</span>
           </button>
-        </div>
-      </div>
-    </header>
-
-    <div class=" px-4 py-6">
+          </nav>
+        </template>
+      </ForumNavbar>
+    </template>
+    <template #main>
+      <div class=" px-4 py-6">
       <div class="max-w-4xl mx-auto space-y-8">
         <div class="mb-8">
           <h1 class="text-3xl font-bold mb-2">Account Settings</h1>
           <p class="text-gray-500">Manage your profile, privacy, and account preferences</p>
         </div>        
           <!-- Profile Settings -->
-           <div class="shadow card bg-base-100 border p-4 border-gray-300 space-y-4">
+           <div class="shadow card bg-base-100 border p-4 border-gray-300 dark:border-base-100 space-y-4">
               <div class="text-2xl font-medium">Profile Pictures</div>    
               <div class="space-y-6">
                 <!-- Avatar -->
@@ -177,7 +182,7 @@ const handleSave = async () => {
               </div>
             </div>
 
-            <div class="shadow card bg-base-100 border p-4 border-gray-300 space-y-4">
+            <div class="shadow card bg-base-100 border p-4 border-gray-300 dark:border-base-100 space-y-4">
               <div class="text-2xl font-medium">Basic Information</div>
               <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
@@ -246,7 +251,7 @@ const handleSave = async () => {
               </div>
             </div>
 
-            <div class="shadow card bg-base-100 border p-4 border-gray-300 space-y-4">
+            <div class="shadow card bg-base-100 border p-4 border-gray-300 dark:border-base-100 space-y-4">
               <div class="font-medium text-2xl">Account Stats</div>
               <div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -281,53 +286,6 @@ const handleSave = async () => {
             </div>
       </div>
     </div>
-  </div>
+    </template>
+  </BaseLayout>
 </template>
-
-
-// interface UserProfile {
-//   username: string
-//   displayName: string
-//   email: string
-//   bio: string
-//   location: string
-//   website: string
-//   avatar: string
-//   joinDate: string
-//   karma: number
-//   postKarma: number
-//   commentKarma: number
-//   badges: string[]
-//   isVerified: boolean
-// }
-
-
-// // Mock user data
-// profile.value = {
-//   username: "sarah_chen",
-//   displayName: "Dr. Sarah Chen",
-//   email: "sarah.chen@university.edu",
-//   bio: "Quantum physicist specializing in quantum error correction and quantum computing. PhD from MIT. Currently researching at IBM Quantum Network.",
-//   location: "Boston, MA",
-//   website: "https://sarahchen-quantum.com",
-//   avatar: "/svg/placeholder.svg",
-//   joinDate: "January 2022",
-//   karma: 15420,
-//   postKarma: 12340,
-//   commentKarma: 3080,
-//   badges: ["Verified Researcher", "Top Contributor", "Gold Award Winner"],
-//   isVerified: true,
-// }
-
-// const handleAvatarUpload = (event: Event) => {
-//   const input = event.target as HTMLInputElement
-//   const file = input.files?.[0]
-//   if (file) {
-//     avatarFile.value = file
-//     const reader = new FileReader()
-//     reader.onload = (e) => {
-//       avatarPreview.value = e.target?.result as string
-//     }
-//     reader.readAsDataURL(file);
-//   }
-// }

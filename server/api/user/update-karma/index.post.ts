@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
     const client = await serverSupabaseClient<Database>(event);
     
-    const { data, error } = await client.from('profiles').upsert(body).select('*')
+    const { data, error } = await client.from('profiles').insert(body).select('*')
     
     if (error) {
       throw createError({ statusMessage: error.message });

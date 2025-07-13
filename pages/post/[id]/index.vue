@@ -1,14 +1,9 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
-      <div class="flex h-16 items-center justify-between px-4">
-        <NuxtLink to="/posts" class="ml-4">
-          <img src="/svg/markins-logo.svg" class="h-8 hidden md:block" >
-          <img src="/svg/markins.svg" class="h-7 md:hidden" >
-        </NuxtLink>
-
-        <nav class="flex items-center space-x-4">
+  <BaseLayout>
+    <template #header>
+      <ForumNavbar>
+        <template #dynamic-content>
+          <nav class="flex items-center space-x-4">
           <NuxtLink to="/posts" class="text-sm font-medium hover:text-[#297D4E] transition-colors">
             Posts
           </NuxtLink>
@@ -16,123 +11,145 @@
             Communities
           </NuxtLink>
         </nav>
-      </div>
-    </header>
+        </template>
+      </ForumNavbar>
+    </template>
+    <template #main>
+      <div class="px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Main Content -->
+          <div class="lg:col-span-3 space-y-6">
+            <!-- Post -->
 
-    <div class="px-4 py-6">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Main Content -->
-        <div class="lg:col-span-3 space-y-6">
-          <!-- Post -->
+            <PostCard
+              :post-data='post!'
+              @vote="handlePostVote"
+            /> 
 
-          <PostCard
-            :post-data='post!'
-            @vote="handlePostVote"
-          /> 
-
-          <!-- Comment Form -->
-          <div class="card bg-base-100 shadow border border-gray-300 p-4">
-            <div class="mb-4">
-              <div class="text-lg font-medium">Add a comment</div>
-            </div>
-            <div class="space-y-4">
-              <RichTextEditor @submit-comment="onSubmitNewComment"/>
-            </div>
-          </div>
-
-          <!-- Comments Section -->
-          <CommentsSection
-            :comments="comments"
-            :sort-by="sortBy"
-            :user-id="user?.id"
-            :is-moderator="isUserModerator"
-            :can-delete-comment="canDeleteComment"
-            @update:sort-by="handleSortByUpdate"
-            @vote="handleCommentVote"
-            @toggle-collapse="toggleCollapse"
-            @set-replying-to="setReplyingTo"
-            @submit-reply="onSubmitReply"
-            @delete="deleteCommentModal"
-            @report="handleReport"
-            @moderate="handleModerate"
-          />
-        </div>
-
-        <!-- Right Sidebar -->
-        <div 
-          v-if="post"
-          class="lg:col-span-1 space-y-4" 
-        >
-          <!-- Community Info -->
-          <div class="card bg-base-100 shadow border border-gray-300 p-4">
-            <div class="text-lg flex items-center mb-4">
-              <span class="mr-2">{{ post.community?.icon }}</span>
-              {{ post.community?.name }}
-            </div>
-            <div class="space-y-4">
-              <p class="text-sm text-gray-500">
-                {{ post.community?.description }}
-              </p>
-              <div class="space-y-2 text-sm">
-                <div class="flex justify-between">
-                  <span>Members</span>
-                  <span class="font-medium">{{ Number(String(post.community?.member_count).replace(/[90]/g, '')) }}K</span>
-                </div>
-                <div class="flex justify-between">
-                  <span>Online</span>
-                  <span class="font-medium text-green-600">2.1K</span>
-                </div>
+            <!-- Comment Form -->
+            <div class="card bg-base-100 shadow border border-gray-300 dark:border-base-300 p-4">
+              <div class="mb-4">
+                <div class="text-lg font-medium">Add a comment</div>
               </div>
-              <button class="w-full bg-[#297D4E] hover:bg-[#1f5a37] text-white font-normal btn">Join Community</button>
-            </div>
-          </div>
-
-          <!-- Related Posts -->
-          <div class="card bg-base-100 shadow border border-gray-300 p-4">
-            <div>
-              <div class="text-lg">Related Posts</div>
-            </div>
-            <div class="space-y-3">
-              <div
-                v-for="(item, index) in relatedPost"
-                :key="index"
-                class="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                <h4 class="text-sm font-medium mb-1">{{ item.title }}</h4>
-                <div class="flex items-center space-x-4 text-xs text-gray-500">
-                  <span>{{ item.votes }} upvotes</span>
-                  <span>{{ item.comments }} comments</span>
-                </div>
+              <div class="space-y-4">
+                <RichTextEditor @submit-comment="onSubmitNewComment"/>
               </div>
             </div>
+
+            <!-- Comments Section -->
+            <CommentsSection
+              :comments="comments"
+              :sort-by="sortBy"
+              :user-id="user?.id"
+              :is-moderator="isUserModerator"
+              :can-delete-comment="canDeleteComment"
+              @update:sort-by="handleSortByUpdate"
+              @vote="handleCommentVote"
+              @toggle-collapse="toggleCollapse"
+              @set-replying-to="setReplyingTo"
+              @submit-reply="onSubmitReply"
+              @delete="deleteCommentModal"
+              @report="handleReport"
+              @moderate="handleModerate"
+            />
           </div>
 
-          <!-- Community Rules -->
-          <div class="card bg-base-100 shadow border border-gray-300 p-4">
-            <div class="text-lg flex items-center mb-4">
-              <i class="h-5 w-5 mr-2 text-[#297D4E] i-lucide-shield" />
-              Rules
+          <!-- Right Sidebar -->
+          <div 
+            v-if="post"
+            class="lg:col-span-1 space-y-4" 
+          >
+            <!-- Community Info -->
+            <div class="card bg-base-100 shadow border border-gray-300 dark:border-base-300 p-4">
+              <div class="text-lg flex items-center mb-4">
+                <span class="mr-2">{{ post.community?.icon }}</span>
+                {{ post.community?.name }}
+              </div>
+              <div class="space-y-4">
+                <p class="text-sm text-gray-500 dark:text-base-content">
+                  {{ post.community?.description }}
+                </p>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between">
+                    <span>Members</span>
+                    <span class="font-medium">{{ Number(String(post.community?.member_count).replace(/[90]/g, '')) }}K</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Online</span>
+                    <!-- <span class="font-medium text-green-600">2.1K</span> -->
+                    <span class="font-medium text-green-600">{{ onlineCount }}</span>
+                  </div>
+                </div>
+                <button 
+                class="w-full font-normal btn"
+                :class="isJoined ? 'bg-base-100 btn-outline border-[#297D4E] text-[#297D4E]' : 'text-white bg-[#297D4E] hover:bg-[#1f5a37]'"
+                @click="handleJoinCommunity(post.community?.id!)"
+                >
+                  {{isJoined ? 'Joined' : 'Join Community'}}
+                </button>
+              </div>
             </div>
-            <div class="space-y-4 text-sm">
-              <p>1. Be respectful and constructive</p>
-              <p>2. No pseudoscience or misinformation</p>
-              <p>3. Cite your sources</p>
-              <p>4. Follow academic integrity</p>
+
+            <!-- Related Posts -->
+            <div class="card bg-base-100 shadow border border-gray-300 dark:border-base-300 p-4">
+              <div>
+                <div class="text-lg">Related Posts</div>
+              </div>
+              <div class="space-y-3">
+                  <div v-if="isLoadingPosts" class="text-center text-gray-400 py-4">
+                  Loading related posts...
+                  </div>
+                  <template v-else>
+                  <template v-if="relatedPosts && relatedPosts.length">
+                    <div
+                      v-for="(item, index) in relatedPosts"
+                      :key="index"
+                      class="p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-base-200 transition-colors cursor-pointer"
+                    >
+                      <h4 class="text-sm font-medium mb-1">{{ item.title }}</h4>
+                      <div class="flex items-center space-x-4 text-xs text-gray-500">
+                        <span>{{ item.upvotes! - item.downvotes! }} upvotes</span>
+                        <span>{{ item.comment_count }} comments</span>
+                      </div>
+                    </div>
+                  </template>
+                  <div v-else class="text-center text-gray-400 py-4">
+                    No related posts found.
+                  </div>
+                  </template>
+              </div>
+            </div>
+
+            <!-- Community Rules -->
+            <div class="card bg-base-100 shadow border border-gray-300 dark:border-base-300 p-4">
+              <div class="text-lg flex items-center mb-4">
+                <i class="h-5 w-5 mr-2 text-[#297D4E] i-lucide-shield" />
+                Rules
+              </div>
+              <div class="space-y-4 text-sm">
+                <p>1. Be respectful and constructive</p>
+                <p>2. No pseudoscience or misinformation</p>
+                <p>3. Cite your sources</p>
+                <p>4. Follow academic integrity</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </template>
+  </BaseLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import BaseLayout from '~/layouts/base.vue';
 import { useToast } from 'vue-toastification';
 import { useVote } from '~/composables/useVotes';
 import useModalStore from '~/stores/useModalStore';
+import { useCommunity } from '~/composables/useCommunity';
 import RichTextEditor from '~/components/editor/editor.vue';
 import PostCard from '~/components/forum/post/post-card.vue';
+import ForumNavbar from '~/components/header/forum-navbar.vue';
 import { useCommentSystem } from '~/composables/useCommentSystem';
 import type { Post, Comment, Community }  from '~/types/utility.ts';
 import CommentsSection from '~/components/forum/comment/comments-section.vue';
@@ -140,12 +157,6 @@ import CommentsSection from '~/components/forum/comment/comments-section.vue';
 interface ApiResponse<T> {
   data: T;
   error?: string;
-}
-
-type RelatedPosts = {
-  title: string,
-  votes: string,
-  comments: string
 }
 
 interface Pagination {
@@ -165,7 +176,6 @@ const post = ref<Post | null>(null);
 const userId = user.value?.id || null;
 const postId = route.params.id as string;
 const replyingTo = ref<string | null>(null);
-const relatedPost = ref<RelatedPosts[]>([]);
 const commentsById = new Map<string, Comment>();
 const sortBy = ref<'best' | 'new' | 'top' | 'controversial'>('best');
 const pagination = ref<Pagination>({
@@ -194,20 +204,27 @@ const {
 });
 
 const { votePost, voteComment } = useVote();
+const { joinCommunity, leaveCommunity } = useCommunityMembership();
 
+const isJoined  = computed(() => {
+  return post.value?.community?.community_members?.some(member => member.user_id === userId) ?? false;
+})
 
 //fetch post
 const { data: payload, error: payloadError } = await useAsyncData(
   'post', 
   async () => {
     const response = await $fetch<ApiResponse<Post>>(`/api/posts/${postId}`);
-    return response.data;
+      return response.data;
+    }
+  );
+  
+  if (payloadError.value) {
+    toast.error('An error occurred while trying to fetch post');
   }
-);
-
-if (payloadError.value) {
-  toast.error('An error occurred while trying to fetch post');
-}
+const communityId = computed(() => payload.value?.community?.id || '');
+  
+const { onlineCount, relatedPosts, isLoadingPosts } = useCommunity(communityId.value);
 
 const {
   isUserModerator,
@@ -296,6 +313,26 @@ const handleModerate = async (commentId: string, action: 'remove' | 'approve' | 
   await moderateComment(commentId, action);
 };
 
+const handleJoinCommunity = async (communityId: string) => {
+  if (!user.value) {
+    toast.error('You need to be logged in to join a community.')
+    return
+  }
+
+
+  try {
+    if (isJoined.value) {
+      await leaveCommunity(communityId);
+      toast.success(`Left ${post.value?.community?.name}`);
+    } else {
+      await joinCommunity(communityId);
+      toast.success(`Joined ${post.value?.community?.name}`);
+    }
+  } catch (err) {
+    toast.error(`Failed to update membership. Please try again.`);
+    console.error(err);
+  }
+}
 
 function deleteCommentModal(commentId: string) {
   store.openModal({ 
@@ -312,16 +349,6 @@ function deleteCommentModal(commentId: string) {
     }
   });
 }
-
-// Lifecycle
-onMounted(() => {
-  // Mock post data
-  relatedPost.value = [
-    { title: "IBM's New Quantum Processor", votes: '1.2K', comments: '89' },
-    { title: 'Quantum Entanglement Explained', votes: '892', comments: '156' },
-    { title: 'Future of Quantum Computing', votes: '2.1K', comments: '234' },
-  ]
-})
 
 watch([payload, user], () => {
   if (!payload.value) {
@@ -398,7 +425,5 @@ watch([data, user], () => {
     .filter(comment => !comment.parent_comment_id)
     .map(comment => buildCommentTree(commentsById.get(comment.id)!));
 
-  // console.log('comments', comments.value);
 }, { immediate: true });
-
 </script>

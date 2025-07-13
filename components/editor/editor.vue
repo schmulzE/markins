@@ -100,7 +100,7 @@ onBeforeUnmount(()=> {
   /* max-height: 18rem; */
 }
 [data-theme="dark"] .editor {
-  /* border-color: #616161; */
+  border-color: #616161;
   color: white;
 }
 .editor_header {

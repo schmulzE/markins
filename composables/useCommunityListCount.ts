@@ -19,10 +19,12 @@ export const useOnlineCounts = () => {
     onlineCounts.value = counts
   }
 
-  onMounted(fetchOnlineCounts)
+  onMounted(() => {
+    fetchOnlineCounts()
 
-  // Optionally, refresh every 2 minutes
-  setInterval(fetchOnlineCounts, 2 * 60 * 1000)
+    // Run in client only
+    setInterval(fetchOnlineCounts, 2 * 60 * 1000)
+  })
 
   return { onlineCounts, fetchOnlineCounts }
 }

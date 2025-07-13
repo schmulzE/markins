@@ -7,7 +7,6 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'netlify',
     compressPublicAssets: true,
-    plugins: ['~/server/plugins/cron.ts']
   },
   runtimeConfig: {
     // Public keys that are exposed to the client
@@ -36,7 +35,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxt/eslint',
     '@nuxtjs/google-fonts', // Add the module here
-  ],
+    '@nuxtjs/color-mode',
+  ],                                                                                                                                                
   googleFonts: {
     families: {
       Mali: [400, 600, 700],

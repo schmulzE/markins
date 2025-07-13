@@ -1,5 +1,5 @@
 <template>
-  <div class="card shadow bg-base-100 border border-gray-300">
+  <div class="card shadow bg-base-100 border border-gray-300 dark:border-base-100">
     <div class="p-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
@@ -18,7 +18,7 @@
           </div>
 
           <!-- Filter Button -->
-          <button class="btn btn-md btn-outline border-gray-200">
+          <button class="btn btn-md btn-outline border-gray-200 dark:border-base-100">
             <i class="h-4 w-4 mr-2 i-lucide-filter" />
             Filter
           </button>

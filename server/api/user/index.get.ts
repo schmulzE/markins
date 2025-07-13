@@ -1,4 +1,4 @@
-import type { Database } from "../../../types/database.types";
+import type { Database } from "~/types/database.types";
 import { serverSupabaseUser, serverSupabaseClient } from "#supabase/server";
 
 export default defineEventHandler(async (event) => {
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
     const { data, error } = await client
     .from('profiles')
-    .select(`*, posts!posts_profile_id_fkey(*, tags(*), comments(id, content, profile_id, post_id))`)
+    .select(`*, community_members(user_id)`)
     .eq('id', user!.id)
     .maybeSingle()
 

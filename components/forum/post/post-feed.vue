@@ -12,9 +12,7 @@
     <PostCard 
     :post-data="posts"
     @vote="handleVote"
-    @bookmark-click="handleBookmark"
     @hide-click="handleHidePost"
-    @award-click="handleAward"
     />
 
     <div 
@@ -47,7 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
   equalTo: null
 })
 
-const emit = defineEmits(['vote', 'bookmark-click', 'hide-click', 'award-click'])
+const emit = defineEmits(['vote', 'bookmark-click', 'hide-click'])
 
 const page = ref(1);
 const loading = ref(false);
@@ -160,16 +158,6 @@ const handleVote = (payload: string) => {
   emit('vote', payload)
 }
 
-const handleBookmark = (postId: string) => {
-  // Implement bookmark logic here
-  emit('bookmark-click', postId)
-}
-
-const handleAward = (payload: string | number) => {
-  // Implement award logic here
-  emit('award-click', payload)
-}
-
 const handleHidePost = (postId: string) => {
   // Hide the post by filtering it out from the posts array
   const postIndex = posts.value.findIndex(post => post.id === postId);
@@ -182,7 +170,5 @@ const handleHidePost = (postId: string) => {
   // toast.info('Post hidden');
   console.log('Post hidden:', postId);
 }
-
-console.log('posts', posts.value);
 
 </script>

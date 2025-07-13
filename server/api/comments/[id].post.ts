@@ -11,7 +11,16 @@ export default defineEventHandler(async (event) => {
   
     const client = await serverSupabaseClient<Database>(event);
     
-    const { data, error } = await client.from("comments").upsert(body).select(`*, profiles!comments_profile_id_fkey(*), bookmarks(*), votes(*)`).single();
+    const { data, error } = await client
+    .from("comments")
+    .insert(body)
+    .select(`
+      *,
+      author:profiles(*),
+      comment_votes(user_id, vote_type),
+      post:posts(community_id)
+    `)
+    .single();
 
     if(error) {
       sendError(event, createError({

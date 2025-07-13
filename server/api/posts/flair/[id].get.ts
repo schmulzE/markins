@@ -29,7 +29,15 @@ export default defineEventHandler(async (event: H3Event) => {
   // Step 2: Query posts with those IDs
   let query = client
     .from('posts')
-    .select('*')
+    .select(`
+      *,
+      author:profiles!posts_author_id_fkey(*), 
+      community:communities(*), 
+      comments:comments!comments_post_id_fkey(*),
+      votes:post_votes(user_id, vote_type),
+      bookmarks:bookmarks(*),
+      post_flairs(flairs(*))
+    `)
     .in('id', postIds);
 
   // Sorting logic
@@ -55,5 +63,13 @@ export default defineEventHandler(async (event: H3Event) => {
     return { error: error.message };
   }
 
-  return { data };
+    // Get post count
+  const { count: totalCount, error: countError } = await client
+    .from('post_flairs')
+    .select('post_id', { count: 'exact', head: true })
+    .eq('flair_id', flairId);
+
+  if (countError) return { error: countError.message };
+
+  return { data, totalCount };
 });

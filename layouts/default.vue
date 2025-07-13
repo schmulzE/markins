@@ -1,10 +1,10 @@
 <template>
-  <div class="relative flex flex-col">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-green-50">
     <!-- Header slot with fallback to default NavbarHomepageNavbar -->
     <slot name="header"/>
     
     <!-- Main content slot -->
-    <main class="flex-1">
+    <main>
       <slot name="main"/>
     </main>
     

@@ -3,7 +3,7 @@ import { serverSupabaseClient } from "#supabase/server";
 
 export default defineEventHandler(async (event) => {
   try {
-    const id = getRouterParam(event, 'id');
+    const postId = getRouterParam(event, 'id');
     const sort = getQuery(event).sort || 'new';
 
     const client = await serverSupabaseClient<Database>(event);
@@ -16,10 +16,10 @@ export default defineEventHandler(async (event) => {
         author:profiles!posts_author_id_fkey(*), 
         community:communities(*), 
         comments:comments!comments_post_id_fkey(*),
-        votes(user_id, vote_type),
+        votes:post_votes(user_id, vote_type),
         bookmarks:bookmarks(*)
       `)
-      .eq("community_id", id!);
+      .eq("community_id", postId!);
 
     if (sort === 'new') {
       postsQuery = postsQuery.order('created_at', { ascending: false });

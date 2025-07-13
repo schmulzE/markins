@@ -1,330 +1,141 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
-      <div class=" flex h-16 items-center justify-between px-4">
-        <NuxtLink to="/posts" class="flex items-center space-x-2">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#297D4E]">
-            <i class="h-5 w-5 text-white i-lucide-miscroscope" />
+  <BaseLayout>
+    <template #header>
+      <ForumNavbar>
+        <template #dynamic-content>
+          <div class="flex items-center space-x-4">
+            <NuxtLink to="/post/create" class="btn bg-[#297D4E] hover:bg-[#1f5a37] text-white">
+              <i class="i-lucide-plus h-4 w-4 md:mr-2" />
+              <span class="hidden md:inline">Create Post</span>
+            </NuxtLink>
           </div>
-          <span class="text-xl font-bold text-[#297D4E]">ScienceForum</span>
-        </NuxtLink>
+        </template>
+      </ForumNavbar>
+    </template>
+    <template #main>
+      <!-- Community Banner -->
+       <CommunityBanner
+        :is-joined="isJoined"
+        :community="community!"
+        :community-name="communityName"
+        @join-community="handleJoin"
+       />
 
-        <div class="flex items-center space-x-4">
-          <NuxtLink to="/post/create" class="btn bg-[#297D4E] hover:bg-[#1f5a37] text-white">
-            <i class="i-lucide-plus h-4 w-4 mr-2" />
-            Create Post
-          </NuxtLink>
-        </div>
-      </div>
-    </header>
+      <div class=" px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Main Content -->
+          <div class="lg:col-span-3 space-y-4">
+            <!-- Sort Bar -->
+             <CommunityFeedToolbar
+              v-model:is-select-mode="isSelectMode"
+              v-model:sort-by="sortBy"
+              :total-posts="posts.length"
+              @toggle-selected="toggleSelectMode"
+             />
+          
+            <PostBulkActionsBar 
+              v-model:is-select-mode="isSelectMode"
+              v-model:selected-posts="selectedPosts"
+              :posts="posts"
+              :is-moderator="isModerator"
+              @bulk-action="handleBulkAction"
+            />
 
-    <!-- Community Banner -->
-    <div class="relative h-48 bg-gradient-to-r from-[#297D4E] to-[#1f5a37]">
-      <img
-        :src="community?.banner_url || '/svg/placeholder.svg'"
-        alt="Community banner"
-        class="absolute h-full w-full object-cover opacity-20"
-      >
-      <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-      <div class="absolute bottom-0 left-0 right-0 p-6">
-        <div class="">
-          <div class="flex items-end space-x-4">
-            <div class="text-6xl">{{ community?.icon }}</div>
-            <div class="flex-1 text-white">
-              <h1 class="text-3xl capitalize font-bold">{{ (route.params.slug as string).replace('-', ' ') }}</h1>
-              <p class="text-lg opacity-90">m/{{ communityName }}</p>
-              <p class="text-sm opacity-75">{{ community?.description }}</p>
-            </div>
-            <div class="flex items-center space-x-3">
-              <button
-                class="btn"
-                :variant="isJoined ? 'secondary' : 'default'"
-                :class="isJoined ? '' : 'bg-white text-[#297D4E] hover:bg-gray-100'"
-                @click="handleJoin"
-              >
-                {{ isJoined ? 'Joined' : 'Join' }}
-              </button>
-              <button
-                class="border-white btn btn-outline text-white hover:bg-white hover:text-[#297D4E]"
-              >
-                <i class="h-4 w-4 i-lucide-bell" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class=" px-4 py-6">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <!-- Main Content -->
-        <div class="lg:col-span-3 space-y-4">
-          <!-- Sort Bar -->
-          <div class="shadow card bg-base-100 border border-gray-300">
-            <div class="p-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                  <button
-                    class="btn"
-                    :class="sortBy === 'hot' ? 'bg-[#297D4E] hover:bg-[#1f5a37] text-white' : 'btn-ghost'"
-                    @click="setSortBy('hot')"
-                  >
-                    <i class="i-lucide-flame h-4 w-4 mr-2" />
-                    Hot
-                  </button>
-                  <button
-                    class="btn"
-                    :class="sortBy === 'new' ? 'bg-[#297D4E] hover:bg-[#1f5a37] text-white' : 'btn-ghost'"
-                    @click="setSortBy('new')"
-                  >
-                    <i class="h-4 w-4 mr-2 i-lucide-clock" />
-                    New
-                  </button>
-                  <button
-                    class="btn"
-                    :class="sortBy === 'top' ? 'bg-[#297D4E] hover:bg-[#1f5a37] text-white' : 'btn-ghost'"
-                    @click="setSortBy('top')"
-                  >
-                    <i class="h-4 w-4 mr-2 i-lucide-trending-up" />
-                    Top
-                  </button>
+            <div v-if="isModerator" class="shadow card border p-4 border-[#297D4E]/20 bg-[#297D4E]/5">
+              <div class="p-4">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="font-semibold text-[#297D4E] flex items-center">
+                    <i class="i-lucide-shield h-4 w-4 mr-2" />
+                    Moderator Panel
+                  </h3>
+                  <div class="badge badge-outline bg-[#297D4E]/10 text-[#297D4E]">
+                    12 pending
+                  </div>
                 </div>
-
-
-                <div class="flex items-center space-x-3">
-                  <button
-                    v-if="isModerator"
-                    class="btn"
-                    :class="isSelectMode ? 'bg-[#297D4E] hover:bg-[#1f5a37]' : 'btn-outline border-gray-300'"
-                    @click="toggleSelectMode"
-                  >
-                    <i class="-lucide-check-circle h-4 w-4 mr-2" />
-                    {{ isSelectMode ? 'Cancel' : 'Select' }}
-                  </button>
-                  <div class="badge bg-[#297D4E]/10 text-[#297D4E]">
-                    {{ posts.length }} posts 
+                <div class="grid grid-cols-4 gap-4 text-center">
+                  <div>
+                    <div class="text-lg font-bold text-yellow-600">12</div>
+                    <div class="text-xs text-muted-foreground">Pending</div>
+                  </div>
+                  <div>
+                    <div class="text-lg font-bold text-red-600">3</div>
+                    <div class="text-xs text-muted-foreground">Reports</div>
+                  </div>
+                  <div>
+                    <div class="text-lg font-bold text-green-600">45</div>
+                    <div class="text-xs text-muted-foreground">Approved</div>
+                  </div>
+                  <div>
+                    <div class="text-lg font-bold text-blue-600">2.1K</div>
+                    <div class="text-xs text-muted-foreground">Active</div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        
-          <div v-if="isModerator && isSelectMode" class="shadow card border p-4 border-[#297D4E]/20 bg-[#297D4E]/5">
-            <div class="p-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                  <div class="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      :checked="selectedPosts.length === posts.length && posts.length > 0"
-                      class="rounded border-gray-300 text-[#297D4E] focus:ring-[#297D4E]"
-                      @change="handleSelectAll"
+
+          <PostCard
+            :post-data="posts"
+            :is-select-mode="isSelectMode"
+            @vote="handleVote"
+            @select-post="handleSelectPost"
+            @post-action="handlePostAction"
+          />
+            <!-- :is-moderator="isModerator" -->
+        </div>
+
+          <!-- Right Sidebar -->
+          <div class="lg:col-span-1 space-y-4">
+            <!-- Community Info -->
+            <CommunityInfo
+            :is-joined="isJoined"
+            :community="community!"
+            :online-count="onlineCount"
+            @join-community="handleJoin"
+            />
+
+            <!-- Community Rules -->
+            <div class="shadow card bg-base-100 border p-4 border-gray-300 dark:border-base-100"> 
+              <div class="text-lg flex items-center font-medium mb-4">
+                <i class="i-lucide-shield h-5 w-5 mr-2 text-[#297D4E]" />
+                Rules
+              </div>
+              <div>
+                <div class="space-y-3">
+                  <div v-for="(rule, index) in communityRules" :key="index" class="flex items-start space-x-3">
+                    <div
+                      class="flex-shrink-0 w-6 h-6 rounded-full bg-[#297D4E]/10 text-[#297D4E] text-xs font-medium flex items-center justify-center"
                     >
-                    <span class="text-sm font-medium">
-                      {{ selectedPosts.length === posts.length && posts.length > 0 ? 'Deselect All' : 'Select All' }}
-                    </span>
-                  </div>
-                  <div v-if="selectedPosts.length > 0" class="bg-[#297D4E] text-white badge">
-                    {{ selectedPosts.length }} selected
-                  </div>
-                </div>
-
-                <div v-if="selectedPosts.length > 0" class="flex items-center space-x-2">
-                  <button
-                    class="btn btn-outline text-green-600 hover:bg-green-50"
-                    @click="() => handleBulkAction('approve')"
-                  >
-                    <i class="i-lucide-check-circle h-4 w-4 mr-2" />
-                    Approve ({{ selectedPosts.length }})
-                  </button>
-                  <button
-                    class="btn btn-outline text-red-600 hover:bg-red-50"
-                    @click="() => handleBulkAction('remove')"
-                  >
-                    <i class="i-lucide-x-circle h-4 w-4 mr-2" />
-                    Remove ({{ selectedPosts.length }})
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="isModerator" class="shadow card border p-4 border-[#297D4E]/20 bg-[#297D4E]/5">
-            <div class="p-4">
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="font-semibold text-[#297D4E] flex items-center">
-                  <i class="i-lucide-shield h-4 w-4 mr-2" />
-                  Moderator Panel
-                </h3>
-                <div class="badge badge-outline bg-[#297D4E]/10 text-[#297D4E]">
-                  12 pending
-                </div>
-              </div>
-              <div class="grid grid-cols-4 gap-4 text-center">
-                <div>
-                  <div class="text-lg font-bold text-yellow-600">12</div>
-                  <div class="text-xs text-muted-foreground">Pending</div>
-                </div>
-                <div>
-                  <div class="text-lg font-bold text-red-600">3</div>
-                  <div class="text-xs text-muted-foreground">Reports</div>
-                </div>
-                <div>
-                  <div class="text-lg font-bold text-green-600">45</div>
-                  <div class="text-xs text-muted-foreground">Approved</div>
-                </div>
-                <div>
-                  <div class="text-lg font-bold text-blue-600">2.1K</div>
-                  <div class="text-xs text-muted-foreground">Active</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        <PostCard
-          :post-data="posts"
-          :is-moderator="isModerator"
-          :is-select-mode="isSelectMode"
-          @vote="handleVote"
-          @select-post="handleSelectPost"
-          @post-action="handlePostAction"
-        />
-      </div>
-
-        <!-- Right Sidebar -->
-        <div class="lg:col-span-1 space-y-4">
-          <!-- Community Info -->
-          <div class="shadow card bg-base-100 border p-4 border-gray-300">
-            <div class="text-lg flex items-center font-medium mb-4">
-              <i class="i-lucide-users h-5 w-5 mr-2 text-[#297D4E]" />
-              About Community
-            </div>
-            <div class="space-y-4">
-              <p class="text-sm text-gray-500 first-letter:capitalize">{{ community?.long_description }}</p>
-
-              <div class="space-y-2">
-                <div class="flex justify-between">
-                  <span class="text-sm">Members</span>
-                  <span class="text-sm font-medium">
-                    {{ community?.member_count ? formatNumber(community.member_count) : '' }}
-                  </span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm">Online</span>
-                  <span class="text-sm font-medium text-green-600">{{ onlineCount }}</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-sm">Created</span>
-                  <span class="text-sm font-medium">
-                    {{ community?.created_at ? formatDate(community?.created_at) : '' }}
-                  </span>
-                </div>
-              </div>
-
-              <button class="w-full btn text-white bg-[#297D4E] hover:bg-[#1f5a37]" @click="handleJoin">
-                {{ isJoined ? 'Joined' : 'Join Community' }}
-              </button>
-
-              <template v-if="isModerator">
-                <div class="border-t border-gray-300 pt-4 mt-4">
-                  <h4 class="font-medium text-[#297D4E] mb-3 flex items-center">
-                    <i class="i-lucide-settings h-4 w-4 mr-2" />
-                    Quick Settings
-                  </h4>
-                  <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm">Post Approval</span>
-                      <input 
-                      type="checkbox" 
-                      class="toggle checked:bg-[#297D4E] checked:border-[#297D4E] checked:text-white" 
-                      :checked="false" 
-                      >
+                      {{ index + 1 }}
                     </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm">Allow Images</span>
-                      <input 
-                      type="checkbox" 
-                      class="toggle checked:bg-[#297D4E] checked:border-[#297D4E] checked:text-white" 
-                      :checked="true" 
-                      >
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-sm">Allow Links</span>
-                      <input 
-                      type="checkbox" 
-                      class="toggle checked:bg-[#297D4E] checked:border-[#297D4E] checked:text-white" 
-                      :checked="true" 
-                      >
-                    </div>
+                    <p class="text-sm text-gray-500 dark:text-base-content">{{ rule }}</p>
                   </div>
-                </div>
-                <button class="btn btn-outline border-gray-300 w-full mt-3">
-                  <i class="i-lucide-settings h-4 w-4 mr-2" />
-                  Full Settings
-                </button>
-              </template>
-            </div>
-          </div>
-
-          <!-- Community Rules -->
-          <div class="shadow card bg-base-100 border p-4 border-gray-300"> 
-            <div class="text-lg flex items-center font-medium mb-4">
-              <i class="i-lucide-shield h-5 w-5 mr-2 text-[#297D4E]" />
-              Rules
-            </div>
-            <div>
-              <div class="space-y-3">
-                <div v-for="(rule, index) in communityRules" :key="index" class="flex items-start space-x-3">
-                  <div
-                    class="flex-shrink-0 w-6 h-6 rounded-full bg-[#297D4E]/10 text-[#297D4E] text-xs font-medium flex items-center justify-center"
-                  >
-                    {{ index + 1 }}
-                  </div>
-                  <p class="text-sm text-gray-500">{{ rule }}</p>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Moderators -->
-          <div class="shadow card bg-base-100 border p-4 border-gray-300">
-            <div class="text-lg flex items-center font-medium mb-4">
-              <i class="i-lucide-shield h-5 w-5 mr-2 text-[#297D4E]" />
-              Moderators
-            </div>
-            <div>
-              <div class="space-y-3">
-                <div v-for="(mod, index) in community?.moderators" :key="index" class="flex items-center space-x-3">
-                  <div v-if="mod?.avatar_url" class="avatar">
-                    <div class="w-7 rounded-full">
-                      <img :src="mod?.avatar_url" class="rounded-full" alt="User Avatar">
-                    </div>
-                  </div>
-                  <div v-else class="avatar avatar-placeholder">
-                    <div class="bg-gray-300 text-neutral-content w-7 rounded-full">
-                      <span class="text-lg">{{ mod?.username?.split(' ').map(n => n[0]).join('') }}</span>
-                    </div>
-                  </div>
-                  <NuxtLink :to="`/user/${mod?.username}`" class="text-sm hover:underline">
-                    u/{{ mod?.username }}
-                  </NuxtLink>
-                </div>
-              </div>
-            </div>
+            <!-- Moderators -->
+            <ModeratorList :moderators="community?.moderators!"/>
+
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </template>
+  </BaseLayout>
 </template>
 
 <script setup lang="ts">
+import BaseLayout from '~/layouts/base.vue';
 import { useToast } from 'vue-toastification';
 import { useVote } from '~/composables/useVotes';
 import type { Post, Community } from '~/types/utility';
 import { useCommunity } from '~/composables/useCommunity';
 import PostCard from '~/components/forum/post/post-card.vue';
+import ForumNavbar from '~/components/header/forum-navbar.vue';
+import CommunityInfo from '~/components/forum/community/community-info.vue';
+import ModeratorList from '~/components/forum/community/moderator-list.vue';
+import CommunityBanner from '~/components/forum/community/community-banner.vue';
+import PostBulkActionsBar from '~/components/forum/post/post-bulk-actions-bar.vue';
+import CommunityFeedToolbar from '~/components/forum/community/community-feed-toolbar.vue';
 
 // Define props
 const toast = useToast();
@@ -371,16 +182,6 @@ posts.value = (postsData.value as unknown as Post[]) ?? [];
 if (postsError.value) {
   console.log('error:', postsError.value)
   toast.error('An error occurred while trying to fetch posts');
-}
-
-const formatDate = (date: string) => {
-  return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-const formatNumber = (num: number) => {
-  if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
-  return num.toString();
 }
 
 const communityName = computed(() => (
@@ -463,10 +264,10 @@ const handleSelectPost = (postId: string) => {
     : [...selectedPosts.value, postId]
 }
 
-const handleSelectAll = () => {
-  const allPostIds = posts.value.map((post) => post.id).filter((id): id is string => typeof id === 'string')
-  selectedPosts.value = selectedPosts.value.length === posts.value.length ? [] : allPostIds
-}
+// const handleSelectAll = () => {
+//   const allPostIds = posts.value.map((post) => post.id).filter((id): id is string => typeof id === 'string')
+//   selectedPosts.value = selectedPosts.value.length === posts.value.length ? [] : allPostIds
+// }
 
 const handleBulkAction = (action: 'approve' | 'remove') => {
   posts.value = posts.value.map((post) => {
@@ -489,10 +290,6 @@ const handleBulkAction = (action: 'approve' | 'remove') => {
 const toggleSelectMode = () => {
   isSelectMode.value = !isSelectMode.value
   selectedPosts.value = []
-}
-
-const setSortBy = (sort: 'hot' | 'new' | 'top') => {
-  sortBy.value = sort
 }
 
 watch(sortBy,  () => {

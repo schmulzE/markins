@@ -1,20 +1,32 @@
+import type { Database } from "~/types/database.types";
 import { serverSupabaseClient } from "#supabase/server";
-import type { Database } from "../../../types/database.types";
 
 export default defineEventHandler(async (event) => {
   try {  
     const client = await serverSupabaseClient<Database>(event);
-    const username = event.context.params!.username;
+    const username = event.context.params?.username || event.req.url?.split('/').pop();
     
     const { data, error } = await client.from('profiles')
-    .select(`*, posts!posts_profile_id_fkey(*, tags(*), comments(id, content, profile_id, post_id), bookmarks(*), post_tags(*)), comments!comments_profile_id_fkey(*, profiles(*))`)
-    .eq('username', username)
-    .maybeSingle()
+      .select(`
+        *,
+        posts!posts_author_id_fkey(*, community:communities(name, icon)),
+        comments!comments_author_id_fkey(
+          *,
+          post:post_id(title, community:communities(name))
+        ),
+        bookmarks!bookmarks_profile_id_fkey(
+          *,
+          post:post_id(*, community:communities(name, icon))
+        )
+      `)
+      .eq('username', username!)
+      .maybeSingle()
 
     if (error) {
       throw createError({ message: error.message})
     }
-    return data ;
+
+    return { data };
 
   } catch (error) {
     if(error instanceof Error)

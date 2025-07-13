@@ -7,6 +7,31 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       bookmarks: {
@@ -458,16 +483,22 @@ export type Database = {
       flairs: {
         Row: {
           created_at: string | null
+          description: string | null
+          display_name: string | null
           id: string
           name: string
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
+          display_name?: string | null
           id?: string
           name: string
         }
         Update: {
           created_at?: string | null
+          description?: string | null
+          display_name?: string | null
           id?: string
           name?: string
         }
@@ -772,41 +803,29 @@ export type Database = {
           online_count: number
         }[]
       }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
+      get_flair_stats: {
+        Args: { flair_name_input: string }
+        Returns: Json
       }
       increment_comment_report_count: {
         Args: { comment_id: string }
         Returns: undefined
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
+      is_community_admin: {
+        Args: { p_user_id: string; p_community_id: string }
+        Returns: boolean
       }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
+      is_member: {
+        Args: { p_community_id: string; p_user_id: string }
+        Returns: boolean
       }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
+      is_post_moderator: {
+        Args: { p_user_id: string; p_post_id: string }
+        Returns: boolean
+      }
+      is_public_community: {
+        Args: { p_community_id: string }
+        Returns: boolean
       }
     }
     Enums: {
@@ -924,6 +943,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

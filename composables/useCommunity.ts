@@ -58,12 +58,16 @@ export const useCommunity = (communityId: string) => {
     isLoadingPosts.value = true
     const { data } = await supabase
       .from('posts')
-      .select('*')
+      .select(`
+        *, 
+        comments:comments!comments_post_id_fkey(*),
+        votes:post_votes(id, created_at, post_id, user_id, vote_type)
+      `)
       .eq('community_id', communityId)
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(3)
 
-    posts.value = data || []
+    posts.value = data ?? []
     isLoadingPosts.value = false
   }
 
@@ -145,7 +149,7 @@ export const useCommunity = (communityId: string) => {
     leaveCommunity,
     memberCount,
     onlineCount,
-    posts,
+    relatedPosts: posts,
     isLoadingPosts,
     fetchPosts
   }

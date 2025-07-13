@@ -1,36 +1,21 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md">
-      <div class="flex h-16 items-center justify-between px-4">
-        <NuxtLink to="/posts" class="ml-4">
-          <img src="/svg/markins-logo.svg" class="h-8 hidden md:block" >
-          <img src="/svg/markins.svg" class="h-7 md:hidden" >
-      </NuxtLink>
-
-        <div class="flex-1 max-w-4xl mx-8">
-          <label class="input relative w-full">
-            <i class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 i-lucide-search" />
-            <input
-              v-model="query"
-              placeholder="Search posts, communities, users..."
-              class="pl-10 pr-4"
-            >
-          </label>
-        </div>
-
-        <nav class="flex items-center space-x-4">
-          <NuxtLink to="/posts" class="text-sm font-medium hover:text-[#297D4E] transition-colors">
-            Posts
-          </NuxtLink>
-          <NuxtLink to="/communities" class="text-sm font-medium hover:text-[#297D4E] transition-colors">
-            Communities
-          </NuxtLink>
-        </nav>
-      </div>
-    </header>
-
-    <div class="px-4 py-6">
+  <BaseLayout>
+    <template #header>
+      <ForumNavbar>
+        <template  #dynamic-content>
+          <nav class="flex items-center space-x-2 md:space-x-4">
+            <NuxtLink to="/posts" class="hidden md:block text-sm font-medium hover:text-[#297D4E] transition-colors">
+              Posts
+            </NuxtLink>
+            <NuxtLink to="/communities" class="text-sm font-medium hover:text-[#297D4E] transition-colors">
+              Communities
+            </NuxtLink>
+          </nav>
+        </template>
+      </ForumNavbar>
+    </template>
+    <template #main>
+      <div class="px-4 py-6">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-1 gap-y-4">
           <div class="shadow card bg-base-100 border p-4 border-gray-300 mb-4">
@@ -110,6 +95,7 @@
             </div>
           </div>
         </div>
+        
         <!-- Search Results -->
         <div class="lg:col-span-3">
           <div 
@@ -167,20 +153,17 @@
         </div>
       </div>
     </div>
-  </div>
+    </template>
+  </BaseLayout>
 </template>
 
 <script setup>
+import BaseLayout from '~/layouts/base.vue';
+import ForumNavbar from '~/components/header/forum-navbar.vue';
 
-// const results = ref([])
-// const query = ref('')
-// const isLoading = ref(false)
-// const searchType = ref('all')
-// const timeFilter = ref('all')
-const recentSearches = ref([])
-// const sortBy = ref('relevance')
+const recentSearches = ref([]);
 
-const { query, type, sort, time, results, isLoading } = useSearch()
+const { query, type, sort, time, results, isLoading } = useSearch();
 
 onMounted(() => {
   // Load recent searches from localStorage
@@ -189,99 +172,6 @@ onMounted(() => {
     recentSearches.value = JSON.parse(saved)
   }
 })
-
-// watch([searchQuery, searchType, sort, timeFilter, communityFilter], () => {
-//   if (searchQuery.value.trim()) {
-//     performSearch()
-//   } else {
-//     results.value = []
-//   }
-// })
-
-// const performSearch = async () => {
-//   isLoading.value = true
-
-//   // Simulate API call
-//   await new Promise((resolve) => setTimeout(resolve, 500))
-
-//   // Mock search results
-//   const mockResults = [
-//     {
-//       id: '1',
-//       type: 'post',
-//       title: 'Breakthrough in Quantum Error Correction: New Algorithm Achieves 99.9% Fidelity',
-//       content: 'Researchers at MIT have developed a revolutionary quantum error correction algorithm...',
-//       author: 'Dr. Sarah Chen',
-//       authorAvatar: '/svg/placeholder.svg',
-//       community: 'r/QuantumPhysics',
-//       communityIcon: '⚛️',
-//       timeAgo: '2 hours ago',
-//       upvotes: 2847,
-//       comments: 156,
-//     },
-//     {
-//       id: '2',
-//       type: 'community',
-//       content: 'A community for discussing quantum mechanics, quantum computing, and quantum technologies',
-//       community: 'r/QuantumPhysics',
-//       communityIcon: '⚛️',
-//       timeAgo: 'Created 5 years ago',
-//       members: '234K',
-//       isJoined: false,
-//     },
-//     {
-//       id: '3',
-//       type: 'user',
-//       content: 'Quantum physicist specializing in quantum error correction and quantum computing',
-//       author: 'Dr. Sarah Chen',
-//       authorAvatar: '/svg/placeholder.svg',
-//       timeAgo: 'Joined 2 years ago',
-//       karma: 15420,
-//       postKarma: 12340,
-//       commentKarma: 3080,
-//       badges: ['Verified Researcher', 'Top Contributor'],
-//     },
-//     {
-//       id: '4',
-//       type: 'comment',
-//       content:
-//         'This is absolutely incredible! I\'ve been following quantum error correction research for years, and this represents a massive leap forward.',
-//       author: 'u/QuantumExpert',
-//       authorAvatar: '/svg/placeholder.svg',
-//       community: 'r/QuantumPhysics',
-//       communityIcon: '⚛️',
-//       timeAgo: '1 hour ago',
-//       upvotes: 234,
-//     },
-//     {
-//       id: '5',
-//       type: 'post',
-//       title: 'CRISPR 3.0: Enhanced Gene Editing with Minimal Off-Target Effects',
-//       content: 'New study shows 99.8% accuracy in gene editing with virtually no unintended modifications...',
-//       author: 'Prof. Michael Rodriguez',
-//       authorAvatar: '/svg/placeholder.svg',
-//       community: 'r/Genetics',
-//       communityIcon: '🧬',
-//       timeAgo: '4 hours ago',
-//       upvotes: 1923,
-//       comments: 89,
-//     },
-//   ]
-
-  // Filter results based on search type
-  // const filteredResults =
-  //   type.value === 'all' ? mockResults : mockResults.filter((result) => result.type === type.value)
-
-  // results.value = filteredResults
-  // isLoading.value = false
-
-  // // Add to recent searches
-  // if (query.value.trim() && !recentSearches.value.includes(query.value)) {
-  //   const newRecentSearches = [query.value, ...recentSearches.value.slice(0, 4)]
-  //   recentSearches.value = newRecentSearches
-  //   localStorage.setItem('recentSearches', JSON.stringify(newRecentSearches))
-  // }
-// }
 
 const handleSearch = (query) => {
   query.value = query

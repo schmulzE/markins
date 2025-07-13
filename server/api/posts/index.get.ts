@@ -6,10 +6,18 @@ export default defineEventHandler(async (event) => {
     const client = await serverSupabaseClient<Database>(event);
 
     const { data } = await client.from("posts")
-    .select(`*, profiles!posts_profile_id_fkey(*), comments(id, content, profile_id, post_id), post_tags(*), tags(*)`)
+    .select(`      
+      *, 
+      author:profiles!posts_author_id_fkey(*), 
+      community:communities(*), 
+      comments:comments!comments_post_id_fkey(*),
+      votes:post_votes!votes_post_id_fkey(user_id, vote_type),
+      bookmarks:bookmarks(*),
+      post_flairs(flairs(*))
+    `)
     .order('created_at', { ascending: false })
 
-    return data
+    return { data }
 
   } catch (error) {
     if(error instanceof Error)

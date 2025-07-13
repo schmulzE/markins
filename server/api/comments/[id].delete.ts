@@ -1,5 +1,5 @@
+import type { Database } from "~/types/database.types";
 import { serverSupabaseClient } from "#supabase/server";
-import type { Database } from "../../../types/database.types";
 
 export default defineEventHandler(async (event) => {
 
@@ -10,13 +10,6 @@ export default defineEventHandler(async (event) => {
   const client = await serverSupabaseClient<Database>(event);
 
   const { data } = await client.from("comments").delete().eq("id", id);
-
-    // const { error: imagesError } = await client
-    // .storage
-    // .from('images')
-    // .remove([`${}`])
-    
-    // if(imagesError) console.log(imagesError)
 
   return { post: data };
 });

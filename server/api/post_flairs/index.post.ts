@@ -9,13 +9,11 @@ export default defineEventHandler(async (event) => {
 
   const client = await serverSupabaseClient<Database>(event);
 
-  const { data, error } = await client.from("post_flairs")
-  .insert(body)
-  .select(`*`)
-  .single();
-  
-  if(error) {
-    throw createError({ statusMessage: error.message })
+  const { error } = await client.from("post_flairs").insert(body);
+
+  if (error) {
+    throw createError({ statusMessage: error.message });
   }
-  return { post: data };
+
+  return { success: true };
 });

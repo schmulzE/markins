@@ -1,5 +1,5 @@
 <template>
-  <div class="card bg-base-100 shadow border border-gray-300 p-4">
+  <div class="card bg-base-100 shadow border border-gray-300 dark:border-base-300 p-4">
     <div class="flex items-center justify-between">
       <div class="text-lg">Comments ({{ comments.filter(c => !c.is_deleted).length }})</div>
         <div class="dropdown dropdown-start">
