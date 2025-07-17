@@ -1,5 +1,13 @@
 <template>
-  <div class="space-y-4">
+  <template v-if="posts.length < 0">
+    <div class="text-center text-gray-500 py-12 bg-base-100">
+      <i class="i-lucide-file-x h-10 w-10 mb-4 text-gray-400" />
+      <div class="text-lg font-semibold mb-2">No posts found</div>
+      <div v-if="filterBy">No posts found for the selected flair.</div>
+      <div v-else>No posts available.</div>
+    </div>
+  </template>
+  <div v-else class="space-y-4">
     <div
       v-for="post in posts"
       :key="post.id"
@@ -94,7 +102,7 @@
 
             <!-- Post Content -->
             <div class="mb-3">
-              <div v-if="post.post_type === 'image' && post.image_url" class="relative w-72 md:w-full md:h-64 mb-3 rounded-lg overflow-hidden">
+              <div v-if="post.post_type === 'image' && post.image_url" class="relative w-82 md:w-full md:h-64 mb-3 rounded-lg overflow-hidden">
                 <img
                   :src="getImageUrl(post.image_url, 'post-images') || '/svg/placeholder.svg'"
                   alt="Post image"
@@ -144,7 +152,7 @@
               <button 
                 class="btn-sm btn-ghost h-8 px-2 flex items-center hover:bg-gray-100 dark:hover:bg-transparent"
               >
-                <i class="h-4 w-4 mr-1 i-lucide-message-square" />
+                <i class="h-4 w-4 mr-2 i-lucide-message-square" />
                 {{ post.comment_count }}
                 <span class="hidden md:block">Comments</span>
               </button>
@@ -197,10 +205,10 @@
                   <div tabindex="0" role="button" class="btn btn-ghost">
                     <i class="h-4 w-4 i-lucide-more-horizontal" />
                   </div>
-                  <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-1 w-28 p-2 shadow-sm">
+                  <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-1 w-28 md:w-40 p-2 shadow-sm">
                     <li>
                       <a class="flex items-center w-full" @click="$emit('hide-click', post.id)">
-                        <i class="i-lucide-pinned h-4 w-4 mr-2" />
+                        <i class="i-lucide-pin h-4 w-4 mr-2" />
                         {{ post.is_pinned ? 'Unpin' : 'Pin' }} Post
                       </a>
                     </li>
@@ -218,7 +226,7 @@
                     </li>
                     <li>
                       <a class="flex items-center w-full" >
-                        <i class="i-lucide user-x h-4 w-4 mr-2" />
+                        <i class="i-lucide-user-x h-4 w-4 mr-2" />
                         Ban User
                       </a>
                     </li>
@@ -254,6 +262,7 @@ const props = defineProps<{
   isModerator?: boolean,
   isSelectMode?: boolean,
   selectedPosts?: string[]
+  filterBy?: string; 
 }>();
 
 const emit = defineEmits([

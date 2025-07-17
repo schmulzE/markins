@@ -41,7 +41,7 @@
               @bulk-action="handleBulkAction"
             />
 
-            <div v-if="isModerator" class="shadow card border p-4 border-[#297D4E]/20 bg-[#297D4E]/5">
+            <div v-if="isModerator" class="shadow card bg-base-100 border p-4 border-[#297D4E]/20">
               <div class="p-4">
                 <div class="flex items-center justify-between mb-3">
                   <h3 class="font-semibold text-[#297D4E] flex items-center">
@@ -75,12 +75,12 @@
 
           <PostCard
             :post-data="posts"
+            :is-moderator="isModerator"
             :is-select-mode="isSelectMode"
             @vote="handleVote"
             @select-post="handleSelectPost"
             @post-action="handlePostAction"
           />
-            <!-- :is-moderator="isModerator" -->
         </div>
 
           <!-- Right Sidebar -->

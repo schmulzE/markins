@@ -17,7 +17,8 @@ export default defineEventHandler(async (event) => {
         community:communities(*), 
         comments:comments!comments_post_id_fkey(*),
         votes:post_votes(user_id, vote_type),
-        bookmarks:bookmarks(*)
+        bookmarks:bookmarks(*),
+        post_flairs(flairs(*))
       `)
       .eq("community_id", postId!);
 

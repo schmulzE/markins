@@ -18,7 +18,7 @@
           </div>
 
           <!-- Filter Button -->
-          <button class="btn btn-md btn-outline border-gray-200 dark:border-base-100">
+          <button class="btn btn-md btn-outline border-gray-200 dark:border-base-100" @click="openFilterModal">
             <i class="h-4 w-4 mr-2 i-lucide-filter" />
             Filter
           </button>
@@ -34,12 +34,14 @@
 </template>
 
 <script setup lang="ts">
-import type { Post } from '~/types/utility';
+import { ref, onMounted } from 'vue';
+import type { Post, Flair } from '~/types/utility';
 
 defineProps<{ sortBy: string, posts: Post[] }>();
 
 const emit = defineEmits<{
-  (e: 'update:sortBy', value: 'hot' | 'new' | 'top'): void
+  (e: 'update:sortBy', value: 'hot' | 'new' | 'top'): void,
+  (e: 'update:filterBy', value: Flair | null): void
 }>();
 
 function setSortBy(value: 'hot' | 'new' | 'top') {
@@ -53,4 +55,49 @@ const getSortIcon = (sort: string) => {
     top: 'i-lucide-trending-up'
   }[sort] || 'i-lucide-list'
 };
+
+const store = useModalStore();
+// Filter Modal State
+const flairs = ref<Flair[]>([]);
+const loadingFlairs = ref(false);
+const selectedFlair = ref<Flair | null>(null);
+
+const fetchFlairs = async () => {
+  loadingFlairs.value = true;
+  try {
+    const response = await $fetch<{ data: Flair[] }>('/api/flairs');
+    flairs.value = response.data || [];
+  } catch (error) {
+    flairs.value = [];
+    throw new Error((error as Error).message);;
+  } finally {
+    loadingFlairs.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchFlairs();
+});
+
+function openFilterModal() {
+  store.openModal({ 
+    component: markRaw(defineAsyncComponent(() => import('~/components/forum/flair/flair-filter-modal.vue'))), 
+    props: {
+      classes: "fixed w-fit top-[50%] left-[50%] h-fit transform translate-x-[-50%] translate-y-[-50%]", 
+      overlayClass: 'bg-gray-900/90',
+      selectedFlair,
+      flairs,
+      loadingFlairs
+    }, 
+    events: {
+      applyFilter: () => {
+        emit('update:filterBy', selectedFlair.value);
+        store.closeModal();
+      },
+      handleSelectFlair: (payload) => {
+        selectedFlair.value = payload as Flair | null;
+      }
+    }
+  });
+}
 </script>

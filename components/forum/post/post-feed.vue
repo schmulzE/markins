@@ -3,16 +3,15 @@
     <PostToolbar
       :posts="posts"
       :sort-by="sortBy"
-      @update:sort-by="(val: 'hot' | 'new' | 'top') => {
-        sortBy = val
-        resetAndFetchPosts()
-      }"
+      @update:sort-by="onSortBy"
+      @update:filter-by="onFilterBy!"
     />
 
     <PostCard 
-    :post-data="posts"
-    @vote="handleVote"
-    @hide-click="handleHidePost"
+      :post-data="posts"
+      :filter-by="filterBy!"
+      @vote="handleVote"
+      @hide-click="handleHidePost"
     />
 
     <div 
@@ -27,7 +26,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { Post } from '~/types/utility';
+import type { Flair, Post } from '~/types/utility';
 import PostCard from '~/components/forum/post/post-card.vue';
 import PostToolbar from '~/components/forum/post/post-toolbar.vue';
 
@@ -63,9 +62,22 @@ const fetchPosts = async () => {
   loading.value = true
 
   try {
-    let query = supabase
-      .from(props.tableName)
-      .select(props.columns.join(','))
+    // Only allow tableName to be a valid table (fix type error)
+    const allowedTables = [
+      "posts", "bookmarks", "comment_reports", "comment_votes", "comments",
+      "communities", "community_members", "community_moderators", "community_rules",
+      "direct_messages", "post_flairs", "post_votes", "profiles"
+    ] as const;
+    type AllowedTable = typeof allowedTables[number];
+
+    if (!allowedTables.includes(props.tableName as AllowedTable)) {
+      throw new Error(`Invalid table name: ${props.tableName}`);
+    }
+
+    // Type assertion for supabase.from to satisfy TS
+    let query = (supabase.from as (table: AllowedTable) => any)(
+      props.tableName as AllowedTable
+    ).select(props.columns.join(','))
 
     // Sorting logic
     switch (sortBy.value) {
@@ -82,11 +94,6 @@ const fetchPosts = async () => {
         query = query.order(props.orderBy.column, { ascending: props.orderBy.ascending })
     }
 
-    // Filtering logic (optional)
-    if (filterBy.value) {
-      query = query.eq('tag', filterBy.value)
-    }
-
     // Pagination
     query = query.range((page.value - 1) * props.itemsPerPage, page.value * props.itemsPerPage - 1)
 
@@ -99,11 +106,20 @@ const fetchPosts = async () => {
     if (error) throw error
     if (!data) throw new Error('No data returned from query')
 
-    if (data.length) {
-      posts.value = [...posts.value, ...data]
+    let filteredData = data
+    if (filterBy.value) {
+      filteredData = data.filter((post: Post) => {
+        if (!post.post_flairs || !Array.isArray(post.post_flairs)) return false;
+        // post_flairs is an array of objects with a flairs property (array)
+        return post.post_flairs.some((pf: { flairs: { name: string | null; }; }) => pf.flairs && pf.flairs.name === filterBy.value)
+      })
+    }
+
+    if (filteredData.length) {
+      posts.value = [...posts.value, ...filteredData]
       page.value++
 
-      if (data.length < props.itemsPerPage) {
+      if (filteredData.length < props.itemsPerPage) {
         hasMorePosts.value = false
       }
     } else {
@@ -151,6 +167,17 @@ const resetAndFetchPosts = () => {
   posts.value = []
   hasMorePosts.value = true
   fetchPosts()
+}
+
+function onFilterBy(flair: Flair) {
+  filterBy.value = flair && flair.name ? flair.name : null
+  resetAndFetchPosts()
+}
+
+function onSortBy(val: 'hot' | 'new' | 'top') {
+  sortBy.value = val
+  filterBy.value = null // Clear flair filter when sorting
+  resetAndFetchPosts()
 }
 
 const handleVote = (payload: string) => {

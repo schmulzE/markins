@@ -22,67 +22,150 @@ export default defineEventHandler(async (event) => {
     users: []
   }
 
-  if (!searchTerm.trim()) return results
+  // Parse advanced search syntax
+  const parsedSearch = parseAdvancedSearch(searchTerm)
+  
+  if (!parsedSearch.searchTerm.trim() && !parsedSearch.filters.length) return results
 
   const timeConstraint = getTimeConstraint(timeFilter)
 
   // --- Posts ---
-  if (type === 'all' || type === 'post') {
-    let queryBuilder = supabase
-      .from('posts')
-      .select(`
-        id,
-        title,
-        content,
-        upvotes,
-        created_at,
-        author:profiles(id, username, avatar_url),
-        community:communities(id, name, icon)
-      `)
+  if (type === 'all' || type === 'post' || parsedSearch.filters.includes('type:post')) {
+    let queryBuilder: any
 
-    // Apply time filter
-    if (timeConstraint) {
-      queryBuilder = queryBuilder.gte('created_at', timeConstraint)
-    }
+    // Handle bookmarked posts differently
+    if (parsedSearch.filters.includes('bookmarked:true')) {
+      const user = await supabase.auth.getUser()
+      if (user.data.user) {
+        queryBuilder = supabase
+          .from('bookmarks')
+          .select(`
+            post:posts(
+              id,
+              title,
+              content,
+              upvotes,
+              created_at,
+              author:profiles(id, username, avatar_url),
+              community:communities(id, name, icon)
+            )
+          `)
+          .eq('user_id', user.data.user.id)
+          .eq('post_id', 'posts.id')
+      }
+    } else {
+      queryBuilder = supabase
+        .from('posts')
+        .select(`
+          id,
+          title,
+          content,
+          upvotes,
+          created_at,
+          author:profiles(id, username, avatar_url),
+          community:communities(id, name, icon)
+        `)
 
-    // Search
-    queryBuilder = queryBuilder.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`)
+      // Apply time filter
+      if (timeConstraint) {
+        queryBuilder = queryBuilder.gte('created_at', timeConstraint)
+      }
 
-    // Sort
-    if (sortBy === 'top') {
-      queryBuilder = queryBuilder.order('upvotes', { ascending: false })
-    } else if (sortBy === 'new') {
-      queryBuilder = queryBuilder.order('created_at', { ascending: false })
+      // Apply author filter
+      if (parsedSearch.filters.includes('author:me')) {
+        const user = await supabase.auth.getUser()
+        if (user.data.user) {
+          queryBuilder = queryBuilder.eq('author_id', user.data.user.id)
+        }
+      }
+
+      // Search in title and content if there's a search term
+      if (parsedSearch.searchTerm.trim()) {
+        queryBuilder = queryBuilder.or(`title.ilike.%${parsedSearch.searchTerm}%,content.ilike.%${parsedSearch.searchTerm}%`)
+      }
+
+      // Sort
+      const effectiveSortBy = parsedSearch.filters.includes('sort:top') ? 'top' : 
+                             parsedSearch.filters.includes('sort:new') ? 'new' : 
+                             sortBy
+      
+      if (effectiveSortBy === 'top') {
+        queryBuilder = queryBuilder.order('upvotes', { ascending: false })
+      } else if (effectiveSortBy === 'new') {
+        queryBuilder = queryBuilder.order('created_at', { ascending: false })
+      }
     }
 
     const { data: posts } = await queryBuilder.limit(limit)
-    results.posts = (posts as unknown as Post[]) || []
+    
+    // Handle bookmarked posts data structure
+    if (parsedSearch.filters.includes('bookmarked:true')) {
+      results.posts = (posts?.map((item: any) => item.post).filter(Boolean) as Post[]) || []
+    } else {
+      results.posts = (posts as unknown as Post[]) || []
+    }
   }
 
   // --- Communities ---
-  if (type === 'all' || type === 'community') {
-    const { data: communities } = await supabase
+  if (type === 'all' || type === 'community' || parsedSearch.filters.includes('type:community')) {
+    let queryBuilder = supabase
       .from('communities')
       .select(`id, name, display_name, description, icon, member_count`)
-      .or(`name.ilike.%${searchTerm}%,display_name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
-      .limit(limit)
 
-    results.communities = (communities as Community[]) || []
+    // Search in name, display_name, and description if there's a search term
+    if (parsedSearch.searchTerm.trim()) {
+      queryBuilder = queryBuilder.or(`name.ilike.%${parsedSearch.searchTerm}%,display_name.ilike.%${parsedSearch.searchTerm}%,description.ilike.%${parsedSearch.searchTerm}%`)
+    }
+
+    const { data: communities } = await queryBuilder.limit(limit)
+    results.communities = (communities as unknown as Community[]) || []
   }
 
   // --- Users ---
-  if (type === 'all' || type === 'user') {
-    const { data: users } = await supabase
+  if (type === 'all' || type === 'user' || parsedSearch.filters.includes('type:user')) {
+    let queryBuilder = supabase
       .from('profiles')
       .select(`id, username, display_name, avatar_url`)
-      .or(`username.ilike.%${searchTerm}%,display_name.ilike.%${searchTerm}%`)
-      .limit(limit)
 
+    // Search in username and display_name if there's a search term
+    if (parsedSearch.searchTerm.trim()) {
+      queryBuilder = queryBuilder.or(`username.ilike.%${parsedSearch.searchTerm}%,display_name.ilike.%${parsedSearch.searchTerm}%`)
+    }
+
+    const { data: users } = await queryBuilder.limit(limit)
     results.users = (users as Profile[]) || [] 
   }
 
   return results
 })
+
+// Parse advanced search syntax
+function parseAdvancedSearch(searchTerm: string): { searchTerm: string, filters: string[] } {
+  const filters: string[] = []
+  let cleanSearchTerm = searchTerm
+
+  // Extract filters from search term
+  const filterPatterns = [
+    /type:(post|user|community)/g,
+    /sort:(top|new|relevance)/g,
+    /author:me/g,
+    /bookmarked:true/g
+  ]
+
+  filterPatterns.forEach(pattern => {
+    const matches = searchTerm.match(pattern)
+    if (matches) {
+      filters.push(...matches)
+      // Remove filters from search term
+      cleanSearchTerm = cleanSearchTerm.replace(pattern, '').trim()
+    }
+  })
+
+  return {
+    searchTerm: cleanSearchTerm,
+    filters
+  }
+}
 
 // Utility function for time filtering
 function getTimeConstraint(range: string): string | null {
