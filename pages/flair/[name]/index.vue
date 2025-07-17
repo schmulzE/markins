@@ -246,7 +246,7 @@ if (result) {
     })),
     postsByDay: result.postsByDay,
   }
-  flairInfo.value.weeklyGrowth = `+${result.weeklyGrowthPercent}%`
+  flairInfo.value.weeklyGrowth = `${result.weeklyGrowthPercent}%`
 }
 
 if (flairStatError) {

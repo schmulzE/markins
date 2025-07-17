@@ -3,7 +3,7 @@
     <template #header>
       <ForumNavbar>
         <template #dynamic-content>
-          <NuxtLink to="/post/create" class="btn btn-sm md:btn-lg p-2 bg-[#297D4E] text-white hover:bg-[#1f5a37]">
+          <NuxtLink to="/post/create" class="btn btn-sm md:btn-md p-2 bg-[#297D4E] text-white hover:bg-[#1f5a37]">
             <i class="h-4 w-4 md:mr-2 i-lucide-plus" />
             <span class="hidden md:inline">Create Post</span>
           </NuxtLink>
