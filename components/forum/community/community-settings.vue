@@ -5,7 +5,6 @@ defineProps<{
   allowImages: boolean;
   allowLinks: boolean;
   requireApproval: boolean;
-  isNSFW: boolean;
 }>();
 
 // Define the emits
@@ -32,10 +31,6 @@ const setAllowLinks = (value: boolean) => {
 
 const setRequireApproval = (value: boolean) => {
   emit('update:requireApproval', value);
-};
-
-const setIsNSFW = (value: boolean) => {
-  emit('update:isNSFW', value);
 };
 </script>
 
@@ -102,19 +97,6 @@ const setIsNSFW = (value: boolean) => {
             class="toggle checked:bg-[#297D4E] checked:border-[#297D4E] checked:text-white" 
             :checked="requireApproval" 
             @change="setRequireApproval(($event.target as HTMLInputElement).checked)"
-          >
-        </div>
-
-        <div class="flex items-center justify-between">
-          <div class="space-y-1">
-            <label>NSFW content</label>
-            <p class="text-sm text-gray-500">Community contains mature content</p>
-          </div>
-          <input 
-            type="checkbox" 
-            class="toggle checked:bg-[#297D4E] checked:border-[#297D4E] checked:text-white" 
-            :checked="isNSFW" 
-            @change="setIsNSFW(($event.target as HTMLInputElement).checked)"
           >
         </div>
       </div>

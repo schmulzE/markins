@@ -193,7 +193,15 @@ const subscription =  supabase
     event: 'INSERT',
     schema: 'public',
   }, (payload:  { new: Tables<'direct_messages'> }) => {
-    messages.value?.push(payload.new)
+    const dbMsg = payload.new;
+    const mappedMsg: Message = {
+      id: dbMsg.id,
+      content: dbMsg.content,
+      sender: dbMsg.sender_id === user.value?.id ? 'user' : 'recipient',
+      timestamp: dbMsg.created_at ? new Date(dbMsg.created_at).toLocaleString() : '',
+      read: !!dbMsg.is_read,
+    };
+    messages.value?.push(mappedMsg);
   })
   .subscribe()
 

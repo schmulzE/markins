@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     
     const client = await serverSupabaseClient<Database>(event);
     
-    const { data, error } = await client.from("messages").select(`*`).eq('chat_id', chatId!).order('created_at', { ascending: false })
+    const { data, error } = await client.from("direct_messages").select(`*`).eq('chat_id', chatId!).order('created_at', { ascending: false })
     if(error) throw createError({ statusMessage: error.message });
 
     return { data }

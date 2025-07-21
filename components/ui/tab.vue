@@ -1,5 +1,5 @@
 <template>
-  <div class="p-0 border border-gray-300">
+  <div class="p-0 border border-base-300">
     <div class="tabs tabs-box gap-2">
       <!-- eslint-disable-next-line vue/no-unused-vars -->
       <template v-for="(tab, _) in tabs" :key="tab.id">

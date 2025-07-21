@@ -81,7 +81,6 @@ const { data, refresh: refreshCommunities, error } = await useAsyncData(
   'communities', 
   async () => {
     const response = await $fetch<{data : Community[]}>('/api/communities');
-    // console.log('communities', response.data);
     return response?.data;
   }
 );

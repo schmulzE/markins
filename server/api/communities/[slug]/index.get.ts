@@ -3,10 +3,9 @@ import { serverSupabaseClient } from "#supabase/server";
 
 export default defineEventHandler(async (event) => {
   try {
-    const slug = getRouterParam(event, 'slug');
+    const slug = event.context.params?.slug 
 
     const client = await serverSupabaseClient<Database>(event);
-
     // Fetch the community
     const { data: community, error: communityError } = await client
       .from("communities")
@@ -18,17 +17,18 @@ export default defineEventHandler(async (event) => {
     
     // Then fetch moderators
     const { data: moderators, error } = await client
-      .from('community_moderators')
+      .from('community_members')
       .select(`
         user_id,
-        profiles!community_moderators_user_id_fkey(
+        profiles!community_members_user_id_fkey(
           id,
           username,
           avatar_url
         )
       `)
+      .eq('is_moderator', true)
       .eq('community_id', community.id)
-      .order('assigned_at', { ascending: true })
+      .order('joined_at', { ascending: true })
           
     if (error) throw createError({ statusMessage: error.message });
 

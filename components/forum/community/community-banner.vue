@@ -28,7 +28,7 @@ defineEmits(['join-community']);
             <p class="text-lg opacity-90">m/{{ communityName }}</p>
             <p class="text-sm opacity-75 line-clamp-2 md:line-clamp-none">{{ community?.description }}</p>
           </div>
-          <div class="flex items-center space-x-3">
+          <!-- <div class="flex items-center space-x-3">
             <button
               class="btn"
               :variant="isJoined ? 'secondary' : 'default'"
@@ -42,7 +42,7 @@ defineEmits(['join-community']);
             >
               <i class="h-4 w-4 i-lucide-edit" />
             </button>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>

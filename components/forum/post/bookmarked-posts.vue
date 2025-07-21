@@ -20,7 +20,7 @@ const getPostTypeIcon = (type: string) => {
 
 <template>
   <div v-if="!bookmarkedPosts.length">
-    <div class="card shadow border border-gray-300 p-4 bg-base-100">
+    <div class="card shadow border border-base-300 p-4 bg-base-100">
       <div class="p-8 text-center">
         <i class="h-12 w-12 mx-auto text-gray-500 mb-4 i-lucide-bookmark" />
         <h3 class="text-lg font-semibold mb-2">No saved posts yet</h3>

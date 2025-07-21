@@ -1,5 +1,5 @@
 import { serverSupabaseClient } from "#supabase/server";
-import type { Database } from "../../../types/database.types";
+import type { Database } from "~/types/database.types";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
     const { text: content, reciever_id } = body;
 
     
-    const { error } = await client.from("messages").update({ content, reciever_id }).eq('id', messageId!).order('created_at', { ascending: false });
+    const { error } = await client.from("direct_messages").update({ content, reciever_id }).eq('id', messageId!).order('created_at', { ascending: false });
     if(error) throw createError({ statusMessage: error.message }) 
 
     return { status: 'OK' }

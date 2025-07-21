@@ -1,5 +1,5 @@
 <template>
-  <div class="card bg-base-100 shadow border border-gray-300 p-4 space-y-4">
+  <div class="card bg-base-100 shadow border border-base-300 p-4 space-y-4">
     <div class="text-lg flex items-center mb-4">
       <i class="h-5 w-5 mr-2 text-[#297D4E] i-lucide-trophy" />
       Karma

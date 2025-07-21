@@ -48,10 +48,10 @@ const handleCategoryChange = (value: typeof props.communityCategory) => {
           <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">m/</span>
           <input
             id="community-name"
-            placeholder="quantumphysics"
+            placeholder="Quantum Physics"
             :value="communityName"
             class="pl-8"
-            @input="handleCommunityNameChange(($event.target as HTMLInputElement).value.toLowerCase())"
+            @input="handleCommunityNameChange(($event.target as HTMLInputElement).value)"
             >
         </label>
         <div class="flex items-center justify-between text-sm">
@@ -67,9 +67,9 @@ const handleCategoryChange = (value: typeof props.communityCategory) => {
         <input
           id="display-name"
           class="input block w-full"
-          placeholder="Quantum Physics"
+          placeholder="quantum-physics"
           :value="communityDisplayName"
-          @input="handleDisplayNameChange(($event.target as HTMLInputElement).value)"
+          @input="handleDisplayNameChange(($event.target as HTMLInputElement).value.toLowerCase())"
         >
       </div>
 

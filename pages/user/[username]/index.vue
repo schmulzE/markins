@@ -29,15 +29,15 @@
               tab-button-class="px-4 md:px-24"
               tab-content-class="p-0"
             >
-  >           <template #posts="{ tab }">
+  >           <template #posts="">
                 <UserPostList :posts="posts" />
               </template>
 
-              <template #comments="{ tab }">
+              <template #comments="">
                 <UserCommentList :comments="comments" />
               </template>
 
-              <template #saved="{ tab }">
+              <template #saved="">
                 <BookmarkedPosts :bookmarked-posts="bookmarkedPosts" />
               </template>
             </Tab>

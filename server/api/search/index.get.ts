@@ -31,6 +31,7 @@ export default defineEventHandler(async (event) => {
 
   // --- Posts ---
   if (type === 'all' || type === 'post' || parsedSearch.filters.includes('type:post')) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let queryBuilder: any
 
     // Handle bookmarked posts differently
@@ -38,20 +39,18 @@ export default defineEventHandler(async (event) => {
       const user = await supabase.auth.getUser()
       if (user.data.user) {
         queryBuilder = supabase
-          .from('bookmarks')
+          .from('posts')
           .select(`
-            post:posts(
-              id,
-              title,
-              content,
-              upvotes,
-              created_at,
-              author:profiles(id, username, avatar_url),
-              community:communities(id, name, icon)
-            )
+            id,
+            title,
+            content,
+            upvotes,
+            created_at,
+            author:profiles(id, username, avatar_url),
+            community:communities(id, name, icon),
+            bookmarks!inner(user_id)
           `)
-          .eq('user_id', user.data.user.id)
-          .eq('post_id', 'posts.id')
+          .eq('bookmarks.user_id', user.data.user.id)
       }
     } else {
       queryBuilder = supabase
@@ -97,13 +96,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const { data: posts } = await queryBuilder.limit(limit)
-    
-    // Handle bookmarked posts data structure
-    if (parsedSearch.filters.includes('bookmarked:true')) {
-      results.posts = (posts?.map((item: any) => item.post).filter(Boolean) as Post[]) || []
-    } else {
-      results.posts = (posts as unknown as Post[]) || []
-    }
+    results.posts = (posts as unknown as Post[]) || []
   }
 
   // --- Communities ---

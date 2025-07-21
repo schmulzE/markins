@@ -65,7 +65,7 @@ const fetchPosts = async () => {
     // Only allow tableName to be a valid table (fix type error)
     const allowedTables = [
       "posts", "bookmarks", "comment_reports", "comment_votes", "comments",
-      "communities", "community_members", "community_moderators", "community_rules",
+      "communities", "community_members", "community_rules",
       "direct_messages", "post_flairs", "post_votes", "profiles"
     ] as const;
     type AllowedTable = typeof allowedTables[number];

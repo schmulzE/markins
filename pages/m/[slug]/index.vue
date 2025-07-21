@@ -137,6 +137,12 @@ import CommunityBanner from '~/components/forum/community/community-banner.vue';
 import PostBulkActionsBar from '~/components/forum/post/post-bulk-actions-bar.vue';
 import CommunityFeedToolbar from '~/components/forum/community/community-feed-toolbar.vue';
 
+interface ApiResponse<T> {
+  data: T;
+  error?: string;
+}
+
+
 // Define props
 const toast = useToast();
 const route = useRoute();
@@ -154,7 +160,7 @@ const { votePost } = useVote();
 const { data: communityData, error: communityError } = await useAsyncData(
   'community', 
   async () => {
-    const response = await $fetch(`/api/communities/${route.params.slug}`);
+    const response = await $fetch<ApiResponse<Community>>(`/api/communities/${route.params.slug}`);
     return response?.data;
   }
 );
@@ -163,10 +169,13 @@ const { data: communityData, error: communityError } = await useAsyncData(
 community.value = communityData.value ? (communityData.value as Community) : null;
 
 if (communityError.value) {
+  console.log('fetching error:', communityError.value);
   toast.error('An error occurred while trying to fetch community');
 }
 
-const isModerator = computed(() => community.value!.community_members?.some(member =>  member.user_id === user.value?.id))
+const isModerator = computed(() =>
+  community.value?.community_members?.some(member => member.user_id === user.value?.id) ?? false
+);
 
 const { data: postsData, refresh: refreshPosts, error: postsError } = await useAsyncData(
   'posts', 

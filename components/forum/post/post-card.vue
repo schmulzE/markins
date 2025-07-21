@@ -252,7 +252,7 @@
 import dayjs from 'dayjs';
 import type { Post } from '~/types/utility';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { useImageHandler } from '~/composables/useImageHandler'
+import { useImageHandler } from '~/composables/useImageHandler';
 import BookmarkButton from '~/components/forum/bookmark/bookmark-button.vue';
 
 dayjs.extend(relativeTime);

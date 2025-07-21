@@ -18,6 +18,9 @@ defineProps<{
   posts: UserPost[]
 }>();
 
+const { getImageUrl } = useImageHandler();
+
+
 const getPostTypeIcon = (type: string) => {
   switch (type) {
     case "image":
@@ -72,7 +75,7 @@ const getPostTypeIcon = (type: string) => {
 
       <div v-if="post.type === 'image' && post.imageUrl" class="relative w-full h-48 mb-3 rounded-lg overflow-hidden">
         <img
-          :src="post.imageUrl || '/svg/placeholder.svg'"
+          :src="getImageUrl(post.imageUrl, 'post-images') || '/svg/placeholder.svg'"
           alt="Post image"
           class="object-cover w-full h-full"
         >

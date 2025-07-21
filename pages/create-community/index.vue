@@ -9,7 +9,7 @@
             </button>
             <button
               class="bg-[#297D4E] hover:bg-[#1f5a37] btn"
-              :disabled="!isValidName || !displayName || !description || !category"
+              :disabled="!isValidName || !newCommunity.name || !newCommunity.description || !newCommunity.category || loading"
               @click="handleSubmit"
               >
               Create Community
@@ -24,7 +24,7 @@
           <div class="mb-8">
             <h1 class="text-3xl font-bold mb-2">Create a Community</h1>
             <p class="text-base-content">
-              Build a place for your scientific community to connect and share knowledge
+              Build a place for your scientific newCommunity to connect and share knowledge
             </p>
           </div>
 
@@ -33,10 +33,10 @@
             <div class="lg:col-span-2 space-y-6">
               <!-- Basic Information -->
               <CommunityFormSection
-              v-model:community-category="category"
-              v-model:community-name="communityName"
-              v-model:community-description="description"
-              v-model:community-display-name="displayName"
+              v-model:community-category="newCommunity.category"
+              v-model:community-name="newCommunity.name"
+              v-model:community-description="newCommunity.description"
+              v-model:community-display-name="newCommunity.slug"
               :categories="categories"
               :is-valid-name="isValidName"
               />
@@ -44,23 +44,22 @@
               <!-- Appearance -->
               <CommunityAppearanceForm 
                 v-model:banner-preview="bannerPreview"
-                v-model:selected-icon="selectedIcon"
+                v-model:selected-icon="newCommunity.icon"
                 :icon-options="iconOptions"
-                @banner-image="bannerImage = $event"
+                @banner-image="newCommunity.bannerImage = $event"
               />
 
               <!-- Community Settings -->
               <CommunitySettings
-                v-model:community-type="communityType"
-                v-model:allow-images="allowImages"
-                v-model:allow-links="allowLinks"
-                v-model:require-approval="requireApproval"
-                v-model:is-n-s-f-w="isNSFW"
+                v-model:community-type="newCommunity.type"
+                v-model:allow-images="newCommunity.allowImages"
+                v-model:allow-links="newCommunity.allowLinks"
+                v-model:require-approval="newCommunity.requireApproval"
               />
 
               <!-- Community Rules -->
                <CommunityRulesForm 
-                  v-model:rules="rules"
+                  v-model:rules="newCommunity.rules"
                 />
             </div>
 
@@ -68,13 +67,13 @@
             <div class="lg:col-span-1 space-y-4">
               <!-- Preview -->
               <CommunityPreview 
-                :selected-icon="selectedIcon"
-                :community-name="communityName"
-                :display-name="displayName"
+                :selected-icon="newCommunity.icon"
+                :community-name="newCommunity.name"
+                :display-name="newCommunity.slug"
                 :banner-preview="bannerPreview"
-                :description="description"
-                :community-type="communityType"
-                :category="category"
+                :description="newCommunity.description"
+                :community-type="newCommunity.type"
+                :category="newCommunity.category"
                 :categories="categories"
               />
 
@@ -121,7 +120,7 @@
                   </div>
                   <div class="flex justify-between">
                     <span>Visibility</span>
-                    <span class="font-medium capitalize">{{ communityType }}</span>
+                    <span class="font-medium capitalize">{{ newCommunity.type }}</span>
                   </div>
                   <div class="pt-2 border-t border-gray-200 dark:border-base-100">
                     <p class="text-base-content">
@@ -140,6 +139,8 @@
 
 <script setup lang="ts">
 import BaseLayout from '~/layouts/base.vue';
+import { useToast } from 'vue-toastification';
+import type { Community } from '~/types/utility';
 import ForumNavbar from '~/components/header/forum-navbar.vue';
 import CommunityPreview from '~/components/forum/community/community-preview.vue';
 import CommunitySettings from '~/components/forum/community/community-settings.vue';
@@ -147,20 +148,41 @@ import CommunityRulesForm from '~/components/forum/community/community-rules-for
 import CommunityFormSection from '~/components/forum/community/community-form-section.vue';
 import CommunityAppearanceForm from '~/components/forum/community/community-appearance-form.vue';
 
+
+export interface CommunityData {
+  name: string;
+  slug: string;
+  icon: string;
+  rules: string[];
+  category: string;
+  description: string;
+  allowLinks: boolean;
+  allowImages: boolean;
+  requireApproval: boolean;
+  bannerImage: File | null;
+  type: "public" | "restricted" | "private";
+}
+
+const toast = useToast();
+const user = useSupabaseUser();
+const { uploadImage } = useImageHandler();
+
 // State
-const category = ref("");
-const isNSFW = ref(false);
-const displayName = ref("");
-const description = ref("");
-const allowLinks = ref(true);
-const selectedIcon = ref('');
+const loading =ref(false);
 const bannerPreview = ref("");
-const communityName = ref("");
-const allowImages = ref(true);
-const rules = ref<string[]>([""]);
-const requireApproval = ref(false);
-const bannerImage = ref<File | null>(null);
-const communityType = ref<"public" | "restricted" | "private">("public");
+const newCommunity = ref<CommunityData>({
+  name: '',
+  slug: '',
+  icon: '',
+  rules: [""],
+  category: '',
+  type: "public",
+  description: '',
+  allowLinks: true,
+  allowImages: true,
+  bannerImage: null,
+  requireApproval: false,
+});
 
 const categories = [
   { id: "physics", name: "Physics", icon: "⚛️" },
@@ -179,27 +201,69 @@ const iconOptions = ["⚛️", "🧬", "⚗️", "🔭", "📐", "⚙️", "🏥
 
 // Computed
 const isValidName = computed(() => {
-  return communityName.value.length >= 3 && 
-         communityName.value.length <= 21 && 
-         /^[a-zA-Z0-9_]+$/.test(communityName.value)
+  return newCommunity.value.name.length >= 3 && 
+         newCommunity.value.name.length <= 21 && 
+         /^[a-zA-Z0-9_]+$/.test(newCommunity.value.name)
 });
 
 // Methods
-const handleSubmit = () => {
-  // Handle community creation
-  console.log({
-    name: communityName.value,
-    displayName: displayName.value,
-    description: description.value,
-    category: category.value,
-    type: communityType.value,
-    isNSFW: isNSFW.value,
-    allowImages: allowImages.value,
-    allowLinks: allowLinks.value,
-    requireApproval: requireApproval.value,
-    rules: rules.value.filter((rule) => rule.trim()),
-    icon: selectedIcon.value,
-    banner: bannerImage.value,
-  })
+const handleSubmit = async () => {
+  try {
+    loading.value = true;
+
+    const res = await $fetch<{ data: Community }>('/api/communities', {
+      method: 'POST',
+      body: ({
+        name: newCommunity.value.name,
+        slug: newCommunity.value.slug,
+        icon: newCommunity.value.icon,
+        type: newCommunity.value.type,
+        rules: newCommunity.value.rules,
+        category: newCommunity.value.category,
+        allow_links: newCommunity.value.allowLinks,
+        description: newCommunity.value.description,
+        allow_images: newCommunity.value.allowImages,
+        require_approval: newCommunity.value.requireApproval
+      }),
+    });
+
+    const community = res.data;
+
+    // Step 2: Upload the image and generate the unique filename
+    if (newCommunity.value.bannerImage) {
+      const imagePath = await uploadImage(newCommunity.value.bannerImage, 'community-banners', community?.id)
+
+      // Step 3: Update the post with the new image URL
+      await $fetch(`/api/communities/update/${community.id}`, {
+        method: 'PATCH',
+        body: {
+          banner_url: imagePath,
+        },
+      });
+    }
+
+    await $fetch(`/api/community_members`, {
+      method: 'POST',
+      body: {
+        user_id: user.value?.id, 
+        community_id: community.id, 
+        is_moderator: true, 
+        is_approved: true
+      },
+    });
+
+    toast.success('Community successfully created!');
+    navigateTo(`m/${community.slug}`);
+
+  } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('An unexpected error occurred.');
+      }
+    } finally {
+      loading.value = false;
+    
+  }
 };
 </script>

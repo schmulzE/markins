@@ -33,8 +33,9 @@ export default defineEventHandler(async (event) => {
 
     // 3. Fetch all moderators for these communities
     const { data: moderators } = await client
-      .from('community_moderators')
+      .from('community_members')
       .select('user_id, community_id')
+      .eq('is_moderator', true)
       .in('community_id', communityIds.filter((id): id is string | null => id !== undefined) as (string | null)[]);
 
     // 4. Enhance comments with moderator status

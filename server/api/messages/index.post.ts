@@ -1,5 +1,5 @@
+import type { Database } from "~/types/database.types";
 import { serverSupabaseClient } from "#supabase/server";
-import type { Database } from "../../../types/database.types";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     
     const client = await serverSupabaseClient<Database>(event);
     
-    const { data, error } = await client.from("messages").insert(body).select().single()
+    const { data, error } = await client.from("direct_messages").insert(body).select().single()
     if(error) throw createError({ statusMessage: error.message })
 
     return { data }
