@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
     const { data, error } = await client
     .from('profiles')
-    .select(`*, community_members(user_id)`)
+    .select(`*, community_members!community_members_user_id_fkey(user_id)`)
     .eq('id', user!.id)
     .maybeSingle()
 

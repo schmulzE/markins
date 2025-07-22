@@ -9,10 +9,10 @@ export default defineEventHandler(async (event) => {
     
     const client = await serverSupabaseClient<Database>(event);
  
-    const { text: content, reciever_id } = body;
+    const { content, recipient_id } = body;
 
     
-    const { error } = await client.from("direct_messages").update({ content, reciever_id }).eq('id', messageId!).order('created_at', { ascending: false });
+    const { error } = await client.from("direct_messages").update({ content, recipient_id }).eq('id', messageId!).order('created_at', { ascending: false });
     if(error) throw createError({ statusMessage: error.message }) 
 
     return { status: 'OK' }

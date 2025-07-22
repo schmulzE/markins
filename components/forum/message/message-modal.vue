@@ -24,21 +24,21 @@
       <div
         v-for="message in messages"
         :key="message.id"
-        :class="`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`"
+        :class="`flex ${message.sender_id !== recipient.id ? 'justify-end' : 'justify-start'}`"
       >
         <div
           :class="`max-w-[80%] rounded-lg p-3 ${
-            message.sender === 'user' ? 'bg-[#297D4E] text-white' : 'bg-gray-100 text-gray-800'
+            message.sender_id !==  recipient.id ? 'bg-[#297D4E] text-white' : 'bg-gray-100 text-gray-800'
           }`"
         >
           <p class="text-sm">{{ message.content }}</p>
           <div
             :class="`flex items-center gap-1 mt-1 text-xs ${
-              message.sender === 'user' ? 'text-[#E0F2E9]' : 'text-gray-500'
+              message.sender_id !== recipient.id ? 'text-[#E0F2E9]' : 'text-gray-500'
             }`"
           >
             <i class="i-lucide-clock h-3 w-3" />
-            <span>{{ message.timestamp }}</span>
+            <!-- <span>{{ message.timestamp }}</span> -->
           </div>
         </div>
       </div>
@@ -71,18 +71,19 @@
 <script setup lang="ts">
 import useModalStore from '~/stores/useModalStore';
 import type { Database, Tables } from '~/types/database.types';
+import type { DirectMessages } from '~/types/utility';
 
 const store = useModalStore();
 const user = useSupabaseUser();
 const supabase = useSupabaseClient<Database>();
 
-interface Message {
-  id: string
-  content: string
-  sender: 'user' | 'recipient'
-  timestamp: string
-  read: boolean
-}
+// interface Message {
+//   id: string
+//   content: string
+//   sender: 'user' | 'recipient'
+//   timestamp: string
+//   read: boolean
+// }
 
 interface Recipient {
   id: string
@@ -94,29 +95,31 @@ interface Recipient {
 interface Props {
   open: boolean
   recipient: Recipient
+  messages: DirectMessages[];
 }
 
 const props = defineProps<Props>();
 
 
 const messageText = ref('');
+const newMessages = ref<DirectMessages[]>([])
 
-const messages = ref<Message[]>([
-  {
-    id: '1',
-    content: "Hello! I'm interested in your research on quantum error correction.",
-    sender: 'user',
-    timestamp: '2 days ago',
-    read: true,
-  },
-  {
-    id: '2',
-    content: 'Thanks for reaching out! I\'d be happy to discuss my work. What specific aspects are you interested in?',
-    sender: 'recipient',
-    timestamp: '1 day ago',
-    read: true,
-  },
-])
+// const messages = ref<Message[]>([
+//   {
+//     id: '1',
+//     content: "Hello! I'm interested in your research on quantum error correction.",
+//     sender: 'user',
+//     timestamp: '2 days ago',
+//     read: true,
+//   },
+//   {
+//     id: '2',
+//     content: 'Thanks for reaching out! I\'d be happy to discuss my work. What specific aspects are you interested in?',
+//     sender: 'recipient',
+//     timestamp: '1 day ago',
+//     read: true,
+//   },
+// ])
 
 // async function loadMessages() {
 //   const { data, error } = await client
@@ -140,50 +143,50 @@ onMounted(async() => {
 
 
 const handleSendMessage = () => {
-  if (!messageText.value.trim()) return
+//   if (!messageText.value.trim()) return
 
-  // Add the new message to the conversation
-  const newMessage: Message = {
-    id: Date.now().toString(),
-    content: messageText.value,
-    sender: 'user',
-    timestamp: 'Just now',
-    read: false,
-  }
+//   // Add the new message to the conversation
+//   const newMessage: Message = {
+//     id: Date.now().toString(),
+//     content: messageText.value,
+//     sender: 'user',
+//     timestamp: 'Just now',
+//     read: false,
+//   }
 
-  messages.value = [...messages.value, newMessage]
-  messageText.value = ''
+//   messages.value = [...messages.value, newMessage]
+//   messageText.value = ''
 
-  // Simulate a reply after a short delay
-  setTimeout(() => {
-    const reply: Message = {
-      id: (Date.now() + 1).toString(),
-      content: "Thanks for your message! I'll get back to you soon.",
-      sender: 'recipient',
-      timestamp: 'Just now',
-      read: false,
-    }
-    messages.value = [...messages.value, reply]
-  }, 1500)
+//   // Simulate a reply after a short delay
+//   setTimeout(() => {
+//     const reply: Message = {
+//       id: (Date.now() + 1).toString(),
+//       content: "Thanks for your message! I'll get back to you soon.",
+//       sender: 'recipient',
+//       timestamp: 'Just now',
+//       read: false,
+//     }
+//     messages.value = [...messages.value, reply]
+//   }, 1500)
 
-  // try {
-  //   await $fetch(`/api/direct_messages`, {
-  //     method: 'POST',
-  //     body: {
-  //       profile_id: props.currentUser,
-  //       chat_id: props.chatId,
-  //       content: newMessage.value,
-  //     },
-  //   })
+//   // try {
+//   //   await $fetch(`/api/direct_messages`, {
+//   //     method: 'POST',
+//   //     body: {
+//   //       profile_id: props.currentUser,
+//   //       chat_id: props.chatId,
+//   //       content: newMessage.value,
+//   //     },
+//   //   })
 
-  // } catch (error) {
-  //   if(error instanceof Error) {
-  //     toast.error(error.message);
-  //   }
-  // } finally {
-  //   await loadMessages()
-  //   newMessage.value = '';
-  // }
+//   // } catch (error) {
+//   //   if(error instanceof Error) {
+//   //     toast.error(error.message);
+//   //   }
+//   // } finally {
+//   //   await loadMessages()
+//   //   newMessage.value = '';
+//   // }
 }
 
 const subscription =  supabase
@@ -193,15 +196,7 @@ const subscription =  supabase
     event: 'INSERT',
     schema: 'public',
   }, (payload:  { new: Tables<'direct_messages'> }) => {
-    const dbMsg = payload.new;
-    const mappedMsg: Message = {
-      id: dbMsg.id,
-      content: dbMsg.content,
-      sender: dbMsg.sender_id === user.value?.id ? 'user' : 'recipient',
-      timestamp: dbMsg.created_at ? new Date(dbMsg.created_at).toLocaleString() : '',
-      read: !!dbMsg.is_read,
-    };
-    messages.value?.push(mappedMsg);
+    newMessages.value?.push(payload.new);
   })
   .subscribe()
 

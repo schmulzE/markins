@@ -146,6 +146,18 @@ if (error.value) {
 
 user.value = data.value;
 
+const { data: messages, error: messagesError } = await useAsyncData(
+  'messages', 
+  async () => {
+    const response = await $fetch(`/api/messages/${user.value?.id}`);
+    return response?.data;
+  }
+);
+
+if (messagesError.value) {
+  toast.error('An error occurred while fetching messages');
+}
+
 const posts = computed(() => {
   return user.value?.posts?.map(post => ({
     id: post.id,
@@ -195,6 +207,7 @@ function openChatModal() {
     props: {
       classes: "fixed w-1/2 sm:max-w-md top-[50%] left-[50%] p-6 h-auto transform translate-x-[-50%] translate-y-[-50%]", 
       overlayClass: 'bg-gray-900/90',
+      messages: messages.value!,
       recipient: {
         id: user.value?.id,
         username: user.value?.username,
