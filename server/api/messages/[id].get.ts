@@ -15,10 +15,9 @@ export default defineEventHandler(async (event) => {
     
     const { data, error } = await client.from("direct_messages")
     .select(`*`)
-    .eq('recipient_id', recipientId!)
-    .eq('sender_id', user.id)
-    .order('created_at', { ascending: false });
-    
+    .or(`and(sender_id.eq.${user.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${user.id})`)
+    .order('created_at', { ascending: true });
+
     if(error) throw createError({ statusMessage: error.message });
 
     return { data }

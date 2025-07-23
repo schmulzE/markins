@@ -41,52 +41,6 @@
                 <BookmarkedPosts :bookmarked-posts="bookmarkedPosts" />
               </template>
             </Tab>
-
-            <!-- <div class="tabs tabs-box gap-2 overflow-hidden">
-              <label
-                class="tab flex items-center justify-center gap-2 cursor-pointer px-24 ml-6"
-              >
-                <input
-                  type="radio"
-                  class="hidden"
-                  name="my_tabs_6"
-                  checked="true"
-                >
-                <span>Posts</span>
-              </label>
-
-              <div class="tab-content bg-base-200 p-6 space-y-4">
-                <UserPostList :posts="posts"/>
-              </div>
-
-              <label
-                class="tab flex items-center justify-center gap-2 cursor-pointer px-24"
-              >
-                <input
-                  type="radio"
-                  class="hidden"
-                  name="my_tabs_6"
-                >
-                <span>Comments</span>
-              </label>
-              <div class="tab-content bg-base-200 p-6 space-y-4">
-                <UserCommentList :comments="comments"/>
-              </div>
-
-              <label
-                class="tab flex items-center justify-center gap-2 cursor-pointer px-24"
-              >
-                <input
-                  type="radio"
-                  class="hidden"
-                  name="my_tabs_6"
-                >
-                <span>Saved</span>
-              </label>
-              <div class="tab-content bg-base-200 p-6 ">
-                <BookmarkedPosts :bookmarked-posts="bookmarkedPosts"/>
-              </div>
-            </div> -->
           </div>
         </div>
       </div>
@@ -130,6 +84,7 @@ const store = useModalStore();
 
 const user = ref<Profile | null>(null);
 const username = route.params.username as string;
+const isLoading = ref(false);
 
 const { data, error } = await useAsyncData(
   'profile', 
@@ -145,18 +100,6 @@ if (error.value) {
 }
 
 user.value = data.value;
-
-const { data: messages, error: messagesError } = await useAsyncData(
-  'messages', 
-  async () => {
-    const response = await $fetch(`/api/messages/${user.value?.id}`);
-    return response?.data;
-  }
-);
-
-if (messagesError.value) {
-  toast.error('An error occurred while fetching messages');
-}
 
 const posts = computed(() => {
   return user.value?.posts?.map(post => ({
@@ -201,21 +144,38 @@ const bookmarkedPosts = computed(() => {
   })) ?? [];
 });
 
-function openChatModal() {
-  store.openModal({ 
-    component: markRaw(defineAsyncComponent(() => import('~/components/forum/message/message-modal.vue'))), 
+async function openChatModal() {
+  isLoading.value = true;
+  store.openModal({
+    component: markRaw(defineAsyncComponent(() => import('~/components/forum/message/message-modal.vue'))),
     props: {
-      classes: "fixed w-1/2 sm:max-w-md top-[50%] left-[50%] p-6 h-auto transform translate-x-[-50%] translate-y-[-50%]", 
+      classes: "fixed w-1/2 sm:max-w-md top-[50%] left-[50%] p-6 h-auto transform translate-x-[-50%] translate-y-[-50%]",
       overlayClass: 'bg-gray-900/90',
-      messages: messages.value!,
       recipient: {
         id: user.value?.id,
         username: user.value?.username,
         displayName: user.value?.display_name,
         avatar: user.value?.avatar_url
-      }
+      },
+      isLoading: isLoading.value,
+      messages: []
     }
   });
+
+  try {
+    const response = await $fetch(`/api/messages/${user.value?.id}`);
+    store.updateModalProps({
+      messages: response?.data,
+    });
+  } catch {
+    toast.error('An error occurred while fetching messages');
+    store.closeModal();
+  } finally {
+    isLoading.value = false;
+    store.updateModalProps({
+      isLoading: false,
+    });
+  }
 }
 
 const tabs = [

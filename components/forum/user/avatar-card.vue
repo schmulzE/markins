@@ -8,7 +8,7 @@
         </div>
       </div>
       <div v-else class="avatar avatar-placeholder">
-        <div class="bg-gray-300 text-neutral-content w-24 rounded-full">
+        <div class="bg-gray-300 text-base-content w-24 rounded-full">
           <span class="text-3xl">{{ user?.display_name?.split(' ').map(n => n[0]).join('') }}</span>
         </div>
       </div>

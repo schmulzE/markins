@@ -4,7 +4,7 @@ import { serverSupabaseClient } from "#supabase/server";
 export default defineEventHandler(async (event) => {
   try {  
     const client = await serverSupabaseClient<Database>(event);
-    const username = event.context.params?.username || event.req.url?.split('/').pop();
+    const username = event.context.params?.username
     
     const { data, error } = await client.from('profiles')
       .select(`

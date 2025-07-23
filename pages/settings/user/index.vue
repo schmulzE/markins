@@ -72,7 +72,7 @@ const handleSave = async () => {
 
   try {
     // Send updated profile to backend (adjust endpoint as needed)
-    await $fetch(`/api/user/${profile.value.id}`, {
+    await $fetch(`/api/user/update/${profile.value.id}`, {
       method: 'PATCH',
       body: {
         display_name: profile.value.display_name,

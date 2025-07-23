@@ -21,8 +21,12 @@
     </div>
 
     <div class="max-h-[60vh] overflow-y-auto py-4 space-y-4">
+      <div v-if="isLoading" class="flex justify-center items-center h-full">
+        <span class="loading loading-spinner loading-lg" />
+      </div>
       <div
-        v-for="message in messages"
+        v-for="message in allMessages"
+        v-else
         :key="message.id"
         :class="`flex ${message.sender_id !== recipient.id ? 'justify-end' : 'justify-start'}`"
       >
@@ -38,7 +42,7 @@
             }`"
           >
             <i class="i-lucide-clock h-3 w-3" />
-            <!-- <span>{{ message.timestamp }}</span> -->
+            <span>{{ dateTime(message.created_at!) }}</span>
           </div>
         </div>
       </div>
@@ -69,21 +73,14 @@
 </template>
 
 <script setup lang="ts">
+import dayjs from 'dayjs';
+import { useToast } from 'vue-toastification';
 import useModalStore from '~/stores/useModalStore';
-import type { Database, Tables } from '~/types/database.types';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import type { DirectMessages } from '~/types/utility';
+import type { Database, Tables } from '~/types/database.types';
 
-const store = useModalStore();
-const user = useSupabaseUser();
-const supabase = useSupabaseClient<Database>();
-
-// interface Message {
-//   id: string
-//   content: string
-//   sender: 'user' | 'recipient'
-//   timestamp: string
-//   read: boolean
-// }
+dayjs.extend(relativeTime);
 
 interface Recipient {
   id: string
@@ -96,109 +93,58 @@ interface Props {
   open: boolean
   recipient: Recipient
   messages: DirectMessages[];
+  isLoading: boolean;
 }
 
 const props = defineProps<Props>();
 
+const toast = useToast();
+const store = useModalStore();
+const user = useSupabaseUser();
+const supabase = useSupabaseClient<Database>();
 
 const messageText = ref('');
-const newMessages = ref<DirectMessages[]>([])
+const newMessages = ref<DirectMessages[]>([]);
 
-// const messages = ref<Message[]>([
-//   {
-//     id: '1',
-//     content: "Hello! I'm interested in your research on quantum error correction.",
-//     sender: 'user',
-//     timestamp: '2 days ago',
-//     read: true,
-//   },
-//   {
-//     id: '2',
-//     content: 'Thanks for reaching out! I\'d be happy to discuss my work. What specific aspects are you interested in?',
-//     sender: 'recipient',
-//     timestamp: '1 day ago',
-//     read: true,
-//   },
-// ])
-
-// async function loadMessages() {
-//   const { data, error } = await client
-//     .from('direct_messages')
-//     .select('*')
-//     .eq('recipient_id', recipient.id)
-//     .eq('sender_id', user.value?.id)
-//     .order('created_at', { ascending: true })
-
-//   if (error) {
-//     throw new Error('Failed to load messages');
-//   }
-
-//   messages.value = data
-// }
-
-onMounted(async() => {
-  // Initialize messages or fetch from API if needed
-  // await loadMessages()
-})
-
-
-const handleSendMessage = () => {
-//   if (!messageText.value.trim()) return
-
-//   // Add the new message to the conversation
-//   const newMessage: Message = {
-//     id: Date.now().toString(),
-//     content: messageText.value,
-//     sender: 'user',
-//     timestamp: 'Just now',
-//     read: false,
-//   }
-
-//   messages.value = [...messages.value, newMessage]
-//   messageText.value = ''
-
-//   // Simulate a reply after a short delay
-//   setTimeout(() => {
-//     const reply: Message = {
-//       id: (Date.now() + 1).toString(),
-//       content: "Thanks for your message! I'll get back to you soon.",
-//       sender: 'recipient',
-//       timestamp: 'Just now',
-//       read: false,
-//     }
-//     messages.value = [...messages.value, reply]
-//   }, 1500)
-
-//   // try {
-//   //   await $fetch(`/api/direct_messages`, {
-//   //     method: 'POST',
-//   //     body: {
-//   //       profile_id: props.currentUser,
-//   //       chat_id: props.chatId,
-//   //       content: newMessage.value,
-//   //     },
-//   //   })
-
-//   // } catch (error) {
-//   //   if(error instanceof Error) {
-//   //     toast.error(error.message);
-//   //   }
-//   // } finally {
-//   //   await loadMessages()
-//   //   newMessage.value = '';
-//   // }
+const dateTime = (value: string) => {
+  return dayjs(value).fromNow();
 }
 
-const subscription =  supabase
+const handleSendMessage = async () => {
+  if (!messageText.value.trim()) return;
+
+  try {
+    await $fetch('/api/direct-messages', {
+      method: 'POST',
+      body: JSON.stringify({
+        content: messageText.value,
+        recipient_id: props.recipient.id,
+        sender_id: user.value!.id,
+      }),
+    });
+    messageText.value = '';
+  } catch (error) {
+    console.error('Error sending message:', error);
+    toast.error('Failed to send message. Please try again later.');
+  }
+};
+
+const allMessages = computed(() => [...props.messages, ...newMessages.value]);
+
+const subscription = supabase
   .channel(`direct_messages:recipient_id=eq.${props.recipient.id}&sender_id=eq.${user.value?.id}`)
-  .on('postgres_changes',
-  {
-    event: 'INSERT',
-    schema: 'public',
-  }, (payload:  { new: Tables<'direct_messages'> }) => {
-    newMessages.value?.push(payload.new);
-  })
-  .subscribe()
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'direct_messages',
+    },
+    (payload: { new: Tables<'direct_messages'> }) => {
+      newMessages.value?.push(payload.new);
+    },
+  )
+  .subscribe();
 
       
 onBeforeUnmount(() => {

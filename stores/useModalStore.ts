@@ -30,6 +30,11 @@ export default defineStore("modal-store", {
     closeModal() {
       this.modalState = basicState;
     },
+     updateModalProps(props: PropsType) {
+      if (this.modalState.component) {
+        this.modalState.props = { ...this.modalState.props, ...props };
+      }
+    },
   },
   getters: {},
 });
