@@ -67,8 +67,10 @@ dayjs.extend(relativeTime)
 export interface BookmarkedPost {
   id: string;
   title: string;
+  postId: string;
   content: string | null;
   community: string;
+  communitySlug: string;
   communityIcon: string | null;
   timeAgo: string;
   upvotes: number;
@@ -107,6 +109,7 @@ const posts = computed(() => {
     title: post.title,
     content: post.content,
     community: post.community.name,
+    communitySlug: post.community.slug,
     communityIcon: post.community.icon,
     timeAgo: dayjs(post.created_at).fromNow(),
     upvotes: post.upvotes ?? 0,
@@ -122,6 +125,7 @@ const comments = computed(() => {
     id: comment.id,
     content: comment.content,
     postTitle: comment.post.title,
+    postId: comment.post.id,
     community: comment.post.community.name,
     timeAgo:  dayjs(comment.created_at).fromNow(),
     upvotes: comment.upvotes ?? 0
@@ -132,8 +136,10 @@ const bookmarkedPosts = computed(() => {
   return user.value?.bookmarks?.filter(b => !b.comment_id).map(bookmark => ({
     id: bookmark.id,
     title: bookmark.post.title,
+    postId: bookmark.post_id ?? '', // Ensure postId is always a string
     content: bookmark.post.content,
     community: bookmark.post.community.name,
+    communitySlug: bookmark.post.community.slug,
     communityIcon: bookmark.post.community.icon,
     timeAgo: dayjs(bookmark.created_at).fromNow(),
     upvotes: bookmark.post.upvotes ?? 0,

@@ -91,7 +91,9 @@ const signInWithGoogle = async () => {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: 'http://localhost:3000'
+      redirectTo: process.env.NODE_ENV === 'production' 
+        ? 'https://markins.vercel.app/posts' 
+        : 'http://localhost:3000/posts'
     }
   })
 

@@ -35,13 +35,13 @@ const getPostTypeIcon = (type: string) => {
     <div
     v-for="post in bookmarkedPosts" 
     :key="post.id" 
-    class="hover:shadow-md transition-all duration-300 shadow border border-gray-300 dark:border-base-100 bg-base-100"
+    class="hover:shadow-md shadow border border-gray-300 dark:border-base-100 bg-base-100"
   >
     <div class="p-4 ">
       <div class="flex items-center space-x-2 mb-2 ">
         <div class="text-sm">{{ post.communityIcon }}</div>
         <NuxtLink
-          :to="`/m/${post.community.slice(2)}`"
+          :to="`/m/${post.communitySlug}`"
           class="text-sm font-medium text-[#297D4E] hover:underline"
         >
           m/{{ post.community }}
@@ -50,10 +50,10 @@ const getPostTypeIcon = (type: string) => {
         <span class="text-xs text-gray-500 dark:text-base-content">{{ post.timeAgo }}</span>
       </div>
 
-      <h3 class="text-lg font-semibold mb-2 hover:text-[#297D4E] transition-colors cursor-pointer">
+      <h3 class="text-lg font-semibold mb-2 hover:text-[#297D4E] cursor-pointer">
         <div class="flex items-start space-x-2">
           <i class="text-gray-400 mt-1" :class="getPostTypeIcon(post.type)" />
-          <span>{{ post.title }}</span>
+          <span :to="`/post/${post.postId}`">{{ post.title }}</span>
         </div>
       </h3>
 

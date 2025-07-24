@@ -9,14 +9,14 @@ export default defineEventHandler(async (event) => {
     const { data, error } = await client.from('profiles')
       .select(`
         *,
-        posts!posts_author_id_fkey(*, community:communities(name, icon)),
+        posts!posts_author_id_fkey(*, community:communities(name, icon, slug)),
         comments!comments_author_id_fkey(
           *,
-          post:post_id(title, community:communities(name))
+          post:post_id(id, title, community:communities(name))
         ),
         bookmarks!bookmarks_profile_id_fkey(
           *,
-          post:post_id(*, community:communities(name, icon))
+          post:post_id(*, community:communities(name, icon, slug))
         )
       `)
       .eq('username', username!)

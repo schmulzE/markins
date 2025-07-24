@@ -6,6 +6,7 @@ interface UserPost {
   content: string | null;
   community: string;
   communityIcon: string | null;
+  communitySlug: string;
   timeAgo: string;
   upvotes: number;
   comments: number;
@@ -51,13 +52,13 @@ const getPostTypeIcon = (type: string) => {
   <div
     v-for="post in posts" 
     :key="post.id" 
-    class="hover:shadow-md transition-all duration-300 shadow border border-gray-300 dark:border-base-100 bg-base-100"
+    class="hover:shadow-md shadow border border-gray-300 dark:border-base-100 bg-base-100"
   >
     <div class="p-4 ">
       <div class="flex items-center space-x-2 mb-2 ">
         <div class="text-sm">{{ post.communityIcon }}</div>
         <NuxtLink
-          :to="`/m/${post.community.slice(2)}`"
+          :to="`/m/${post.communitySlug}`"
           class="text-sm font-medium text-[#297D4E] hover:underline"
         >
           m/{{ post.community }}

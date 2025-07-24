@@ -1,6 +1,6 @@
 <template>
   <div class="lg:col-span-1 space-y-4">
-    <AvatarCard :user="user" @open-chat-modal="$emit('open-chat-modal')" />
+    <AvatarCard :profile="user" @open-chat-modal="$emit('open-chat-modal')" />
     <AboutCard :user="user" />
     <KarmaCard :user="user" />
   </div>

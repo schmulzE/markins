@@ -19,16 +19,16 @@ export type Post = NestedResponse<
 
 export type Profile = Tables<'profiles'> & {
   posts: (Tables<'posts'> & {
-    community: Pick<Tables<'communities'>, 'name' | 'icon'>;
+    community: Pick<Tables<'communities'>, 'name' | 'icon' | 'slug'>;
   })[];
   comments: (Tables<'comments'> & {
-    post: Pick<Tables<'posts'>, 'title'> & {
+    post: Pick<Tables<'posts'>, 'title' | 'id'> & {
       community: Pick<Tables<'communities'>, 'name'>;
     };
   })[];
   bookmarks: (Tables<'bookmarks'> & {
     post: Tables<'posts'> & {
-      community: Pick<Tables<'communities'>, 'name' | 'icon'>;
+      community: Pick<Tables<'communities'>, 'name' | 'icon' | 'slug'>;
     };
   })[];
 };

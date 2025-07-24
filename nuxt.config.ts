@@ -55,8 +55,7 @@ export default defineNuxtConfig({
       include: undefined,
       exclude: [],
       saveRedirectToCookie: false,
-    }
-  
+    },
   },
   css: ['~/assets/css/main.css']
 })
